@@ -14,11 +14,10 @@ namespace ProcDumpEx.Options
 
 		internal override async Task<bool> ExecuteAsync(ProcDumpExCommand command)
 		{
-			//TODO: Falls man am Ende nicht die Prozesse angeben möchte sondern etwas anderes, dann muss mit -pn gearbeitet werden
-
 			ConsoleEx.WriteUnderline("ProcDumpEx-Help:");
 			Console.WriteLine();
 			Console.WriteLine("ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.");
+			Console.WriteLine("For a better overview, https://github.com/PoppyTheDeveloPaw/ProcDumpEx can be visited");
 			Console.WriteLine();
 			ConsoleEx.WriteUnderline("ProcDumpEx provides the following additional parameters:");
 			Console.WriteLine();

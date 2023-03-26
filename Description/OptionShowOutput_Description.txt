@@ -1,4 +1,4 @@
-﻿The '-w' parameter is a parameter used by ProcDump itself. When used in conjunction with ProcDumpEx, it allows ProcDumpEx to detect the termination and restart of a process, and re-open ProcDump instances for the processes found using the '-pn' parameter and process name. This ensures that the desired processes are constantly monitored even after termination and restart.
+﻿Since ProcDumpEx starts several ProcDump instances at the same time, the normal output of ProcDump is suppressed and only displayed when a ProcDump instance has been started or terminated. With the parameter -showoutput, the output of the ProcDump instances is displayed after they have been terminated.
 
 Example:
-1.	ProcDumpEx.exe -ma -w -e -pn "<process 1>.exe, <process 2>.exe“
+1.	procdumpex.exe -showoutput -ma -e <process 1.exe>

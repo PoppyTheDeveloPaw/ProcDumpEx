@@ -1,1 +1,5 @@
-﻿
+﻿The -help parameter can be used to display explanations and examples for the individual parameters supported by ProcDumpEx. In addition, the help of ProcDump is printed.
+As soon as the parameter '-help' occurs in the specified arguments, nothing is executed but only the help of ProcDumpEx and ProcDump is displayed.
+
+Examples:
+1.	procdumpex.exe -help

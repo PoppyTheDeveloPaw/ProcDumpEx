@@ -1,6 +1,5 @@
 ﻿using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
-using System;
 using System.Diagnostics;
 using System.Text;
 

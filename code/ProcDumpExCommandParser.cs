@@ -43,13 +43,18 @@ namespace ProcDumpEx
 			else
 			{
 				var obj = tokens.Last();
-				tokens.RemoveAt(tokens.Count - 1);
 
 				if (obj.IsOption)
 				{
 					OptionAttribute pnOptionAttribute = (OptionAttribute)Attribute.GetCustomAttribute(typeof(OptionPn), typeof(OptionAttribute))!;
-					throw new ValueExpectedException("Since the parameter {0} was not specified, a list with one or more process names/process id's was expected at the end of the ProcDumpEx command", pnOptionAttribute.Option); //TODO Help fall abdecken
+
+					if (obj.Value.ToString()?.ToLower() == typeof(OptionHelp).GetOption())
+						return (Array.Empty<string>().ToList(), Array.Empty<int>().ToList());
+
+					throw new ValueExpectedException("Since the parameter {0} was not specified, a list with one or more process names/process id's was expected at the end of the ProcDumpEx command", pnOptionAttribute.Option);
 				}
+
+				tokens.RemoveAt(tokens.Count - 1);
 
 				if (obj.Value is List<string> processes)
 					return ParseProcessStringList(processes.ToArray());
