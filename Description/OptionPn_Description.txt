@@ -1,0 +1,7 @@
+﻿If the parameter '-pn' is used with a process name, ProcDumpEx retrieves the process IDs (PIDs) of all programmes and their corresponding subordinate processes with the same name and opens a separate ProcDump instance for each of them. It is also possible to directly specify the ID of a process instead of its name. In connection with the parameter '-inf', however, this can only be restarted as long as the process with the specified ID exists.
+If it is necessary that the PID is inserted at a certain position and not at the end of the arguments, this can be achieved with the placeholder [ProcessPlaceholder].
+
+Example: 
+1.	ProcDumpEx.exe -ma -e -pn "<process 1>.exe, <process 2>.exe“
+2.	ProcDumpEx.exe -ma -e -pn „<PID 1>, <PID 2>“
+3.	ProcDumpEx.exe -ma -e -pn „<PID 1>, <process 2>.exe“

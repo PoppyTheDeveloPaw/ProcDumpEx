@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ProcDumpEx": {
+      "commandName": "Project",
+      "commandLineArgs": "-help"
+    }
+  }
+}

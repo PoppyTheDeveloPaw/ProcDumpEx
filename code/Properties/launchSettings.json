@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ProcDumpEx": {
+      "commandName": "Project",
+      "commandLineArgs": "-ma -e -cputhd \\\"0, 123123,123,    213\\\"         -w \\\"notepad.exe, brave.exe, 1234\\\"\""
+    }
+  }
+}

@@ -1,0 +1,38 @@
+﻿using System.Reflection;
+
+namespace ProcDumpEx.Options
+{
+	[Option("-memthd", true)]
+	public class OptionMemthd : OptionBase
+	{
+		private const string ProcdumpCommand = "-m";
+		internal IReadOnlyCollection<int> MemoryCommitThreshold { get; }
+
+		internal override bool IsCommandCreator => true;
+
+		public OptionMemthd(params string[] values)
+		{
+			List<int> memoryCommitThreshold = new();
+
+			foreach (var value in values)
+			{
+				this.GetType().GetCustomAttribute(typeof(OptionAttribute));
+
+				if (!int.TryParse(value, out int mb) || mb < 0)
+					throw new ArgumentException($"{GetType().GetOption()} expects only positive numeric values");
+
+				memoryCommitThreshold.Add(mb);
+			}
+
+			MemoryCommitThreshold = memoryCommitThreshold;
+		}
+
+		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
+		{
+			foreach (var item in MemoryCommitThreshold)
+				command.AddProcDumpCommand(string.Join(' ', ProcdumpCommand, item));
+
+			return Task.FromResult(true);
+		}
+	}
+}
