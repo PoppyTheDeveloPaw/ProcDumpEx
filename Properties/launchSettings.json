@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ProcDumpEx": {
+      "commandName": "Project",
+      "commandLineArgs": "-e -memthdl \"100,200,300\" -showoutput -w \"notepad++.exe\""
+    }
+  }
+}

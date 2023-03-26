@@ -1,0 +1,6 @@
+﻿When using the '-pn' parameter with a process name, ProcDumpEx will retrieve the process IDs (PIDs) of all programs and their corresponding child processes with the same name and open a separate ProcDump instance for each of them. Alternatively, when using the '-pn' parameter with a PID, only the specified processes will be monitored explicitly. When using the PID, the process will only be monitored as long as it is running and not terminated in the meantime. This is because Windows assigns a new PID to a process after it is restarted.
+
+Example: 
+1.	ProcDumpEx.exe -ma -e -pn "<process 1>.exe, <process 2>.exe“
+2.	ProcDumpEx.exe -ma -e -pn „<PID 1>, <PID 2>“
+3.	ProcDumpEx.exe -ma -e -pn „<PID 1>, <process 2>.exe“

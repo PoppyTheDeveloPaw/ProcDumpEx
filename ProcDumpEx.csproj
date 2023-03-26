@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RunPostBuildEvent>Always</RunPostBuildEvent>
+	</PropertyGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<!--Procdump files-->
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Procdump\procdump.exe&quot; &quot;$(TargetDir)Procdump\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Procdump\procdump64.exe&quot; &quot;$(TargetDir)Procdump64\&quot;" />
+	
+		<!--Description files-->
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\Option64_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionCputhd_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionCputhdl_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionHelp_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionInf_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionMemthd_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionMemthdl_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionPn_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionW_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+	</Target>
+
+	<ItemGroup>
+		<PackageReference Include="System.Management" Version="7.0.0" />
+	</ItemGroup>
+
+</Project>

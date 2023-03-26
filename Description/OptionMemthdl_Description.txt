@@ -1,0 +1,4 @@
+﻿The '-memthdl' parameter extends the existing ProcDump '-ml' parameter. It allows users to set lower memory thresholds for one or more processes such that if one or more processes falls below the specified memory usage, a memory dump will be generated. It is also possible to combine this parameter with the '-pn' and '-inf' parameters. The values provided are expressed in units of megabytes (MB).
+
+Example:
+1.	procdumpex.exe -ma -memthd "100,200,300" -pn "<process 1>.exe, <process 2>.exe"
