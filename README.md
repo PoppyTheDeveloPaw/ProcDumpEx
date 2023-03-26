@@ -5,7 +5,8 @@ It is necessary that the files ProcDump/procdump.exe and Procdump64/procdump64.e
 By pressing the key combinations CTRL+C, CTRL+Break or the X key, ProcDumpEx can be terminated at any time. All ProcDump instances currently started by ProcDumpEx are thereby terminated.
 
 ## Download
-The latest version can be downloaded at [ProcDumpEx](https://github.com/PoppyTheDeveloPaw/ProcDumpEx/raw/implementation/ProcDumpEx/ProcDumpEx.zip)
+
+The latest version can be downloaded at [ProcDumpEx](https://github.com/PoppyTheDeveloPaw/ProcDumpEx/raw/main/ProcDumpEx/ProcDumpEx.zip)
 
 ## Supported parameters
 
@@ -17,8 +18,8 @@ ProcDump internally checks whether the process to be monitored is a 32- or 64-bi
 
 #### Example:
 
-| ProcDumpEx call                              | Resulting Procdump calls                   |
-| -------------------------------------------- | ------------------------------------------ |
+| ProcDumpEx call                             | Resulting Procdump calls                   |
+| ------------------------------------------- | ------------------------------------------ |
 | `procdumpex.exe -64 -ma -e <process 1>.exe` | `procdump64.exe -ma -e <PID of process 1>` |
 
 ### Parameter '-cputhd'
@@ -89,10 +90,10 @@ If it is necessary that the PID is inserted at a certain position and not at the
 
 #### Examples:
 
-| ProcDumpEx call                                                                                                                                                                     | Resulting Procdump calls                                                                                                    |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `ProcDumpEx.exe -ma -e -pn <process 1>.exe>`<br/>**alternative:** `ProcDumpEx.exe -ma -e <process 1>.exe>`                                                                          | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>`                                                                 |
-| `ProcDumpEx.exe -ma -e -pn <PID 1>`<br/>**alternative:** `ProcDumpEx.exe -ma -e <PID 1>`                                                                                            | `<procdump.exe/procdump64.exe> -ma -e <PID 1>`                                                                            |
+| ProcDumpEx call                                                                                                                                                                         | Resulting Procdump calls                                                                                                |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `ProcDumpEx.exe -ma -e -pn <process 1>.exe>`<br/>**alternative:** `ProcDumpEx.exe -ma -e <process 1>.exe>`                                                                              | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>`                                                               |
+| `ProcDumpEx.exe -ma -e -pn <PID 1>`<br/>**alternative:** `ProcDumpEx.exe -ma -e <PID 1>`                                                                                                | `<procdump.exe/procdump64.exe> -ma -e <PID 1>`                                                                          |
 | `ProcDumpEx.exe -ma -e -pn "<process 1>.exe, <process 2>.exe"`<br/>**alternative:** `ProcDumpEx.exe -ma -e "<process 1>.exe, <process 2>.exe"`                                          | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -e <PID of process 2>` |
 | `ProcDumpEx.exe -ma -e -pn "<PID 1>, <PID 2>"`<br/>**alternative:** `ProcDumpEx.exe -ma -e "<PID 1>, <PID 2>"`                                                                          | `<procdump.exe/procdump64.exe> -ma -e <PID 1>`<br/>`<procdump.exe/procdump64.exe> -ma -e <PID 2>`                       |
 | `ProcDumpEx.exe -ma -e -pn "<PID 1>, <process 2>.exe"`<br/>**alternative:** `ProcDumpEx.exe -ma -e "<PID 1>, <process 2>.exe"`                                                          | `<procdump.exe/procdump64.exe> -ma -e <PID 1>`<br/>`<procdump.exe/procdump64.exe> -ma -e <PID of process 2>`            |
@@ -104,8 +105,8 @@ Since ProcDumpEx starts several ProcDump instances at the same time, the normal 
 
 #### Examples:
 
-| ProcDumpEx call                                      | Resulting Procdump calls                                  |
-| ---------------------------------------------------- | --------------------------------------------------------- |
+| ProcDumpEx call                                     | Resulting Procdump calls                                  |
+| --------------------------------------------------- | --------------------------------------------------------- |
 | `procdumpex.exe -showoutput -ma -e <process 1>.exe` | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>` |
 
 ### Parameter '-w'
