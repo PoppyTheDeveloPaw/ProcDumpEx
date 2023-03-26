@@ -23,6 +23,11 @@
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionMemthdl_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionPn_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionW_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionShowOutput_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+
+		<!--Important files-->
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)README.md&quot; &quot;$(TargetDir)&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)LICENSE&quot; &quot;$(TargetDir)&quot;" />
 	</Target>
 
 	<ItemGroup>
