@@ -3,6 +3,9 @@
 ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.  
 By pressing the key combinations CTRL+C, CTRL+Break or the X key, ProcDumpEx can be terminated at any time. All ProcDump instances currently started by ProcDumpEx are thereby terminated.
 
+## Download
+The latest version can be downloaded at [ProcDumpEx](https://github.com/PoppyTheDeveloPaw/ProcDumpEx/raw/implementation/ProcDumpEx/ProcDumpEx.zip)
+
 ## Supported parameters
 
 ProcDumpEx provides the following additional parameters:
