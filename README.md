@@ -1,7 +1,7 @@
 ﻿# ProcDumpEx
 
 ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.  
-It is necessary that the files ProcDump/procdump.exe and Procdump64/procdump64.exe are located next to the file ProcDumpEx.exe.   
+It is necessary that the files ProcDump/procdump.exe and Procdump64/procdump64.exe are located next to the file ProcDumpEx.exe.  
 By pressing the key combinations CTRL+C, CTRL+Break or the X key, ProcDumpEx can be terminated at any time. All ProcDump instances currently started by ProcDumpEx are thereby terminated.
 
 ## Download
