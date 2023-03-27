@@ -187,16 +187,27 @@ namespace ProcDumpEx
 			if (_processManager.IsMonitored(process.Id, argument))
 				return;
 
-			ProcessStartInfo info = new ProcessStartInfo
+			ProcessStartInfo info;
+
+			try
 			{
-				UseShellExecute = false,
-				CreateNoWindow = true,
-				RedirectStandardInput = true,
-				RedirectStandardOutput = true,
-				RedirectStandardError = true,
-				FileName = _use64 ? Constants.FullProcdump64Path : process.Is64Bit() ? Constants.FullProcdump64Path : Constants.FullProcdumpPath,
-				Arguments = argument.Contains(Constants.ProcessPlaceholder) ? argument.Replace(Constants.ProcessPlaceholder, process.Id.ToString()) : string.Join(' ', argument, process.Id)
-			};
+				info = new ProcessStartInfo
+				{
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					RedirectStandardInput = true,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					FileName = _use64 ? Helper.GetExistingProcDump64Path() : process.Is64Bit() ? Helper.GetExistingProcDump64Path() : Helper.GetExistingProcDumpPath(),
+					Arguments = argument.Contains(Constants.ProcessPlaceholder) ? argument.Replace(Constants.ProcessPlaceholder, process.Id.ToString()) : string.Join(' ', argument, process.Id)
+				};
+			}
+			catch (ProcDumpFileMissingException e)
+			{
+				ConsoleEx.WriteError(e.Message);
+				Stop();
+				return;
+			}
 
 			if (Process.Start(info) is { } procdump)
 			{
