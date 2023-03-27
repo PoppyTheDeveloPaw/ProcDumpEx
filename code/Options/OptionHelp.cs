@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using ProcDumpEx.Exceptions;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace ProcDumpEx.Options
@@ -30,10 +31,19 @@ namespace ProcDumpEx.Options
 			Console.WriteLine();
 			ConsoleEx.WriteUnderline("Below is the usage of procdump itself");
 			var process = new Process();
-			process.StartInfo = new ProcessStartInfo(Constants.FullProcdumpPath, "-?")
+
+			try
 			{
-				UseShellExecute = false
-			};
+				process.StartInfo = new ProcessStartInfo(Helper.GetExistingProcDumpPath(), "-?")
+				{
+					UseShellExecute = false
+				};
+			}
+			catch (ProcDumpFileMissingException e)
+			{
+				ConsoleEx.WriteError(e.Message);
+				return false;
+			}
 
 			process.Start();
 			await process.WaitForExitAsync();
