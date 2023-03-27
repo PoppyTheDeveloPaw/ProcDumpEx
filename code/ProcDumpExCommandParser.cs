@@ -8,7 +8,7 @@ namespace ProcDumpEx
 	internal class ProcDumpExCommandParser
 	{
 
-		internal static ProcDumpExCommand Parse(string commandLine)
+		internal static ProcDumpExCommand? Parse(string commandLine)
 		{
 			//Split proc dump ex command in different tokens
 			var tokens = CommandSplitList.SplitCommandLineString(commandLine);
@@ -17,7 +17,18 @@ namespace ProcDumpEx
 
 			var types = Helper.GetTypesWithOptionAttribute(Assembly.GetExecutingAssembly());
 
-			var processes = ExtractProcesses(tokens);
+			(List<string> ProcessNames, List<int> ProcessIds) processes;
+
+			try
+			{
+				processes = ExtractProcesses(tokens);
+			}
+			catch (ArgumentException e)
+			{
+				ConsoleEx.WriteError(e.Message);
+				return null;
+			}
+
 			List<OptionBase> options = new List<OptionBase>();
 
 			string pnOption = typeof(OptionPn).GetOption();
