@@ -12,6 +12,7 @@
 		<!--Procdump files-->
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Procdump\procdump.exe&quot; &quot;$(TargetDir)Procdump\&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Procdump\procdump64.exe&quot; &quot;$(TargetDir)Procdump64\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Procdump\procdump64a.exe&quot; &quot;$(TargetDir)Procdump64a\&quot;" />
 	
 		<!--Description files-->
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\Option64_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />

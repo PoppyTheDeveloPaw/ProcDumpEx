@@ -1,5 +1,6 @@
 ﻿using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
+using ProcDumpExExceptions;
 using System.Diagnostics;
 using System.Text;
 
@@ -187,16 +188,33 @@ namespace ProcDumpEx
 			if (_processManager.IsMonitored(process.Id, argument))
 				return;
 
-			ProcessStartInfo info = new ProcessStartInfo
+			ProcessStartInfo info;
+
+			try
 			{
-				UseShellExecute = false,
-				CreateNoWindow = true,
-				RedirectStandardInput = true,
-				RedirectStandardOutput = true,
-				RedirectStandardError = true,
-				FileName = _use64 ? Constants.FullProcdump64Path : process.Is64Bit() ? Constants.FullProcdump64Path : Constants.FullProcdumpPath,
-				Arguments = argument.Contains(Constants.ProcessPlaceholder) ? argument.Replace(Constants.ProcessPlaceholder, process.Id.ToString()) : string.Join(' ', argument, process.Id)
-			};
+				info = new ProcessStartInfo
+				{
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					RedirectStandardInput = true,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					FileName = GetProcDumpPath(process),
+					Arguments = argument.Contains(Constants.ProcessPlaceholder) ? argument.Replace(Constants.ProcessPlaceholder, process.Id.ToString()) : string.Join(' ', argument, process.Id)
+				};
+			}
+			catch (ProcDumpFileMissingException e)
+			{
+				ConsoleEx.WriteError(e.Message);
+				Stop();
+				return;
+			}
+			catch (GetArchitectureException)
+			{
+				Stop();
+				Console.WriteLine($"The architecture of the process could not be queried. ProcDumpEx is terminated");
+				return;
+			}
 
 			if (Process.Start(info) is { } procdump)
 			{
@@ -228,6 +246,24 @@ namespace ProcDumpEx
 				if (_inf)
 					await ExecuteAsync(procdump.Id);
 			}
+		}
+
+		private string GetProcDumpPath(Process process)
+		{
+			switch (process.GetProcessArchitecture())
+			{
+				case System.Runtime.InteropServices.Architecture.X86:
+					if (_use64)
+						return Helper.GetExistingProcDump64Path();
+					return Helper.GetExistingProcDumpPath();
+				case System.Runtime.InteropServices.Architecture.X64:
+					return Helper.GetExistingProcDump64Path();
+				case System.Runtime.InteropServices.Architecture.Arm64:
+					return Helper.GetExistingProcDump64aPath();
+			}
+
+			//Should never happen
+			return string.Empty;
 		}
 	}
 }
