@@ -5,7 +5,7 @@ By pressing the key combinations CTRL+C, CTRL+Break or the X key, ProcDumpEx can
 
 Inspired by https://github.com/tedyyu/ProcDumpEx and reinterpreted
 
-##Necessary Files
+## Necessary Files
 
 | ProcDump file   | Resulting Procdump calls                            |
 | --------------- | --------------------------------------------------- |
