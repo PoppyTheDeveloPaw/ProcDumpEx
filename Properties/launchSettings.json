@@ -2,7 +2,7 @@
   "profiles": {
     "ProcDumpEx": {
       "commandName": "Project",
-      "commandLineArgs": "-log -ma -memthd \"1000,2000,3000\" -n 2 -pn \"MemTest64.exe\""
+      "commandLineArgs": "-cfg C:\\Users\\alexa\\Downloads\\cfg.txt"
     }
   }
 }

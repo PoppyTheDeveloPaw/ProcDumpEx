@@ -1,4 +1,5 @@
 ﻿using ProcDumpEx;
+using ProcDumpEx.code;
 using System.Drawing;
 
 if (Helper.IsProcdumpFileMissing())
@@ -15,29 +16,29 @@ for (int i = 0; i < args.Length; i++)
 	}
 }
 
-string argsCommandLine = string.Join(' ', args);
-
-if (ProcDumpExCommandParser.Parse(argsCommandLine) is not { } command)
-{
-	ConsoleEx.WriteError("Specified parameters could not be parsed. ProcDumpEx is terminated. Use the parameter \"-help\" to display examples and allowed parameters");
+if (ArgumentManager.GetCommands(args) is not { } commandList)
 	return;
-}
 
-KeyEvent.Instance.KeyPressedEvent += (sender, e) => Instance_KeyPressedEvent(e, command);
-AppDomain.CurrentDomain.ProcessExit += (sender, e) => ProcessExitEvent(command);
+KeyEvent.Instance.KeyPressedEvent += (sender, e) => Instance_KeyPressedEvent(e, commandList);
+AppDomain.CurrentDomain.ProcessExit += (sender, e) => ProcessExitEvent(commandList);
 
 bool manuallyExit = false;
 string text = string.Empty;
 
-await command.RunAsync();
+List<Task> awaitCommands = new List<Task>();
+foreach (var command in commandList)
+{
+	awaitCommands.Add(command.RunAsync());
+}
+await Task.WhenAll(awaitCommands);
 
 if (manuallyExit)
 	ConsoleEx.WriteColor(text, ConsoleColor.DarkMagenta);
 
-if (command.Log)
+if (commandList.Any(o => o.Log))
 	ConsoleEx.WriteLogFile();
 
-void Instance_KeyPressedEvent(KeyPressed e, ProcDumpExCommand command)
+void Instance_KeyPressedEvent(KeyPressed e, ProcDumpExCommand[] commands)
 {
 	manuallyExit = true;
 	string key = e switch
@@ -48,10 +49,17 @@ void Instance_KeyPressedEvent(KeyPressed e, ProcDumpExCommand command)
 		_ => "Unknown"
 	};
 	text = $"ProcDump was terminated manually by pressing the \"{key}\" key";
-	command.Stop();
+
+	foreach (var command in commands)
+	{
+		command.Stop();
+	}
 }
 
-void ProcessExitEvent(ProcDumpExCommand command)
+void ProcessExitEvent(ProcDumpExCommand[] commands)
 {
-	command.Stop();
+	foreach (var command in commands)
+	{
+		command.Stop();
+	}
 }
