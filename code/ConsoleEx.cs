@@ -43,7 +43,7 @@ namespace ProcDumpEx
 			StringBuilder sb = new StringBuilder();
 			sb.AppendLine(sbErrorMessage.ToString());
 
-			sb.Append($"Excepiton: {e}");
+			sb.Append($"Exception: {e}");
 
 			WriteError(sb.ToString());
 		}
