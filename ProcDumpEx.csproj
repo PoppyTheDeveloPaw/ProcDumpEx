@@ -33,7 +33,9 @@
 	</Target>
 
 	<ItemGroup>
+		<PackageReference Include="Gapotchenko.FX.Diagnostics.Process" Version="2022.2.7" />
 		<PackageReference Include="System.Management" Version="7.0.0" />
+		<PackageReference Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
 	</ItemGroup>
 
 </Project>
