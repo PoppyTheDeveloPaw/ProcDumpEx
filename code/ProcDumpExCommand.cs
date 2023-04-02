@@ -1,4 +1,4 @@
-using ProcDumpEx.Exceptions;
+﻿using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
 using ProcDumpExExceptions;
 using System.Diagnostics;
@@ -56,6 +56,9 @@ namespace ProcDumpEx
 			_showoutput = _procDumpExOptions.Any(o => o is OptionShowOutput);
 			if (_showoutput)
 				_procDumpExOptions.RemoveAll(o => o is OptionShowOutput);
+
+			if (_inf)
+				_processManager.ProcDumpProcessTerminated += async (_, e) => await ProcessManager_ProcDumpProcessTerminatedAsync(e);
 		}
 
 		internal async Task RunAsync()
@@ -225,7 +228,7 @@ namespace ProcDumpEx
 
 			if (Process.Start(info) is { } procdump)
 			{
-				ProcDumpInfo procDumpInfo = new ProcDumpInfo(info.FileName, procdump.Id, info.Arguments, process.ProcessName);
+				ProcDumpInfo procDumpInfo = new ProcDumpInfo(info.FileName, procdump.Id, info.Arguments, process.ProcessName, process.Id);
 
 				_processManager.AddNewMonitoredProcess(process.Id, argument, procdump, procDumpInfo);
 
@@ -247,8 +250,6 @@ namespace ProcDumpEx
 					ConsoleEx.WriteError("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.");
 
 				_processManager.RemoveMonitoredProcess(process.Id, argument, procDumpInfo, !_inf && _procDumpExOptions.Any(o => o is OptionW), output.Contains("Dump count reached"));
-				if (_inf)
-					await ExecuteAsync(procdump.Id);
 			}
 		}
 
@@ -271,7 +272,12 @@ namespace ProcDumpEx
 			throw new InvalidProcessorArchitecture(architecture, process);
 		}
 
-		private void WriteProcessNotFoundInfoMessage(string processName)
+		private async Task ProcessManager_ProcDumpProcessTerminatedAsync(ProcDumpInfo e)
+		{
+			if (_inf)
+				await ExecuteAsync(e.ExaminedProcessId);
+		}
+
 	}
 
 	internal struct ProcDumpInfo
@@ -280,13 +286,15 @@ namespace ProcDumpEx
 		internal int ProcDumpProcessId { get; }
 		internal string UsedArguments { get; }
 		internal string ExaminedProcessName { get; }
+		internal int ExaminedProcessId { get; }
 
-		internal ProcDumpInfo(string procDump, int procDumpProcessId, string usedArguments, string examinedProcessName)
+		internal ProcDumpInfo(string procDump, int procDumpProcessId, string usedArguments, string examinedProcessName, int examinedProcessId)
 		{
 			UsedProcDumpFileName = Path.GetFileName(procDump);
 			ProcDumpProcessId = procDumpProcessId;
 			UsedArguments = usedArguments;
 			ExaminedProcessName = examinedProcessName;
+			ExaminedProcessId = examinedProcessId;
 		}
 	}
 }
