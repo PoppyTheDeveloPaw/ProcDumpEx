@@ -212,7 +212,13 @@ namespace ProcDumpEx
 			catch (GetArchitectureException)
 			{
 				Stop();
-				Console.WriteLine($"The architecture of the process could not be queried. ProcDumpEx is terminated");
+				Console.WriteLine("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters");
+				return;
+			}
+			catch (InvalidProcessorArchitecture e)
+			{
+				Stop();
+				Console.WriteLine(e.Message);
 				return;
 			}
 
@@ -250,20 +256,21 @@ namespace ProcDumpEx
 
 		private string GetProcDumpPath(Process process)
 		{
-			switch (process.GetProcessArchitecture())
+			var architecture = process.GetProcessArchitecture();
+			switch (architecture)
 			{
-				case System.Runtime.InteropServices.Architecture.X86:
+				case ProcessorArchitecture.x86:
 					if (_use64)
 						return Helper.GetExistingProcDump64Path();
 					return Helper.GetExistingProcDumpPath();
-				case System.Runtime.InteropServices.Architecture.X64:
+				case ProcessorArchitecture.AMD64 or ProcessorArchitecture.x64:
 					return Helper.GetExistingProcDump64Path();
-				case System.Runtime.InteropServices.Architecture.Arm64:
+				case ProcessorArchitecture.ARM64:
 					return Helper.GetExistingProcDump64aPath();
 			}
 
 			//Should never happen
-			return string.Empty;
+			throw new InvalidProcessorArchitecture(architecture, process);
 		}
 	}
 }
