@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ProcDumpEx.code
+namespace ProcDumpEx
 {
 	internal class KeyEvent
 	{

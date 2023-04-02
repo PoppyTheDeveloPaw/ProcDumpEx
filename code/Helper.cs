@@ -2,6 +2,8 @@
 using ProcDumpEx.Options;
 using System.Management;
 using System.Reflection;
+using System.Security.Principal;
+
 namespace ProcDumpEx
 {
 	internal static class Helper
@@ -137,6 +139,13 @@ namespace ProcDumpEx
 				}
 			}
 			return false;
+		}
+
+		internal static bool CheckIfStartedAsAdmin()
+		{
+			WindowsIdentity identity = WindowsIdentity.GetCurrent();
+			WindowsPrincipal principal = new WindowsPrincipal(identity);
+			return principal.IsInRole(WindowsBuiltInRole.Administrator);
 		}
 	}
 }
