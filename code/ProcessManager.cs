@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 
@@ -26,13 +26,16 @@ namespace ProcDumpEx
 
 		object _removeLock = new object();
 
-		public bool RemoveMonitoredProcess(int processId, string arguments, ProcDumpInfo info, bool writeIdleMessage)
+		public bool RemoveMonitoredProcess(int processId, string arguments, ProcDumpInfo info, bool writeIdleMessage, bool succeeded)
 		{
 			lock( _removeLock )
 			{
 				bool value = _currentMonitoredProcesses.Remove(new(processId, arguments));
 
-				Console.WriteLine($"{info.UsedProcDumpFileName} finished. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}");
+				if (succeeded)
+					ConsoleEx.WriteSuccess($"{info.UsedProcDumpFileName} finished successfully. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}");
+				else
+					ConsoleEx.WriteFailure($"{info.UsedProcDumpFileName} terminated without success. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}");
 
 				if (writeIdleMessage && !_killAllCalled && !_currentMonitoredProcesses.Any())
 					ConsoleEx.WriteInfo("Currently all active ProcDump processes have been terminated. ProcDumpEx is idle until new processes are started.");

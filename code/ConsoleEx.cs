@@ -31,6 +31,20 @@ namespace ProcDumpEx
 			Console.ResetColor();
 		}
 
+		public static void WriteSuccess(string message)
+		{
+			Console.ForegroundColor = ConsoleColor.Green;
+			Console.WriteLine(message);
+			Console.ResetColor();
+		}
+
+		public static void WriteFailure(string message)
+		{
+			Console.ForegroundColor = ConsoleColor.DarkYellow;
+			Console.WriteLine(message);
+			Console.ResetColor();
+		}
+
 		public static void WriteError(string errorMessage, Exception e)
 		{
 			StringBuilder sbErrorMessage = new StringBuilder();

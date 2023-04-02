@@ -1,4 +1,4 @@
-﻿using ProcDumpEx.Exceptions;
+using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
 using ProcDumpExExceptions;
 using System.Diagnostics;
@@ -134,7 +134,15 @@ namespace ProcDumpEx
 
 			if (!processes.Any())
 			{
-				WriteProcessNotFoundInfoMessage(processName);
+				StringBuilder sb = new StringBuilder();
+				sb.Append($"Currently there is no process with the name {processName} running.");
+
+				if (_procDumpExOptions.Any(o => o is OptionW))
+					sb.Append(" ProcDumpEx is idle for this process name until a new process instance is started");
+				else
+					sb.Append(" The execution for this process name is terminated.");
+
+				ConsoleEx.WriteInfo(sb.ToString());
 				return;
 			}
 
@@ -230,15 +238,15 @@ namespace ProcDumpEx
 
 				await Task.WhenAll(Test(procdump.StandardOutput), procdump.WaitForExitAsync());
 
-				_processManager.RemoveMonitoredProcess(process.Id, argument, procDumpInfo, !_inf && _procDumpExOptions.Any(o => o is OptionW));
-				
-				//Check if procdump output contains help string
-				if (output.Contains("Use -? -e to see example command lines."))
-					ConsoleEx.WriteError("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.");
 
 				if (_showoutput)
 					ConsoleEx.PrintOutput(procDumpInfo, output);
 
+				//Check if procdump output contains help string
+				if (output.Contains("Use -? -e to see example command lines."))
+					ConsoleEx.WriteError("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.");
+
+				_processManager.RemoveMonitoredProcess(process.Id, argument, procDumpInfo, !_inf && _procDumpExOptions.Any(o => o is OptionW), output.Contains("Dump count reached"));
 				if (_inf)
 					await ExecuteAsync(procdump.Id);
 			}
@@ -264,17 +272,6 @@ namespace ProcDumpEx
 		}
 
 		private void WriteProcessNotFoundInfoMessage(string processName)
-		{
-			StringBuilder sb = new StringBuilder();
-			sb.Append($"Currently there is no process with the name {processName} running.");
-
-			if (_procDumpExOptions.Any(o => o is OptionW))
-				sb.Append(" ProcDumpEx is idle for this process name until a new process instance is started");
-			else
-				sb.Append(" The execution for this process name is terminated.");
-
-			ConsoleEx.WriteInfo(sb.ToString());
-		}
 	}
 
 	internal struct ProcDumpInfo
