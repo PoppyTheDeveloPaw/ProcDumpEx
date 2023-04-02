@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 
@@ -8,6 +8,8 @@ namespace ProcDumpEx
 	{
 		private Dictionary<ProcdumpProcessIdentifier, Process> _currentMonitoredProcesses;
 		private bool _killAllCalled = false;
+
+		internal event EventHandler<ProcDumpInfo>? ProcDumpProcessTerminated;
 
 		public ProcessManager()
 		{
@@ -40,6 +42,7 @@ namespace ProcDumpEx
 				if (writeIdleMessage && !_killAllCalled && !_currentMonitoredProcesses.Any())
 					ConsoleEx.WriteInfo("Currently all active ProcDump processes have been terminated. ProcDumpEx is idle until new processes are started.");
 
+				ProcDumpProcessTerminated?.Invoke(this, info);
 				return value;
 			}
 		}
