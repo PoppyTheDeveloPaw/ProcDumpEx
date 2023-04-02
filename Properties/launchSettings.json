@@ -2,7 +2,7 @@
   "profiles": {
     "ProcDumpEx": {
       "commandName": "Project",
-      "commandLineArgs": "-ma -memthd \"1000,2000,3000\" MemTest64.exe"
+      "commandLineArgs": "-log -ma -inf notepad.exe"
     }
   }
 }

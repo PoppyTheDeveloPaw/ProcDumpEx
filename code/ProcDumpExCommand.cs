@@ -97,7 +97,7 @@ namespace ProcDumpEx
 
 			await Task.WhenAll(tasks);
 
-			if (_procDumpExOptions.Any(o => o is (OptionW or OptionInf)))
+			if (_procDumpExOptions.Any(o => o is OptionW) || _inf)
 				await _tcs.Task;
 		}
 
@@ -248,7 +248,9 @@ namespace ProcDumpEx
 
 				await Task.WhenAll(Test(procdump.StandardOutput), procdump.WaitForExitAsync());
 
-				ConsoleEx.PrintOutput(procDumpInfo, output, LogId, !_showoutput);
+				var outputList = output.Split("\r\n");
+
+				ConsoleEx.PrintOutput(procDumpInfo, outputList, LogId, !_showoutput);
 
 				//Check if procdump output contains help string
 				if (output.Contains("Use -? -e to see example command lines."))

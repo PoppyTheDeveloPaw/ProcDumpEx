@@ -57,17 +57,16 @@ namespace ProcDumpEx
 
 		public static void Write(string message, string logId)
 		{
-			string outputMessage = $"[{logId}][{GetTimeNow()}]: {message}";
+			string outputMessage = $"{GetIdTime(logId)}{message}";
 			_log.Add(outputMessage);
 			Console.Write(outputMessage);
 		}
 
-		public static void WriteLine(string message, string logId, bool onlyLog = false)
+		public static void WriteLine(string message, string logId)
 		{
-			string outputMessage = $"[{logId}][{GetTimeNow()}]: {message}";
+			string outputMessage = $"{GetIdTime(logId)}{message}";
 			_log.Add(outputMessage);
-			if (!onlyLog)
-				Console.WriteLine(outputMessage);
+			Console.WriteLine(outputMessage);
 		}
 
 		public static void WriteLine()
@@ -83,6 +82,8 @@ namespace ProcDumpEx
 			File.WriteAllLines(fileName, _log.Select(x => x.Replace(StartUnderline, "").Replace(EndUnderline, "")));
 			ConsoleEx.WriteColor($"Log file saved with the name {fileName}", ConsoleColor.DarkMagenta, logId);
 		}
+
+		private static string GetIdTime(string logId) => $"[{logId}][{GetTimeNow()}]: ";
 
 		private static string GetTimeNow() => DateTime.UtcNow.ToString("G", CultureInfo.GetCultureInfo("de-DE"));
 
@@ -117,7 +118,7 @@ namespace ProcDumpEx
 		}
 
 		private static object _lockObject = new object();
-		public static void PrintOutput(ProcDumpInfo info, string output, string logId, bool onlyLog = false)
+		public static void PrintOutput(ProcDumpInfo info, string[] output, string logId, bool onlyLog = false)
 		{
 			lock (_lockObject)
 			{
@@ -128,7 +129,23 @@ namespace ProcDumpEx
 				mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 				SetConsoleMode(handle, mode);
 				string firstLine = $"Output of {info.UsedProcDumpFileName} / Process logId: {info.ProcDumpProcessId}. Examined Process: {info.ExaminedProcessName}";
-				WriteLine($"{StartUnderline}{firstLine}{EndUnderline}\n{output}", logId, onlyLog);
+
+				string dateTime = GetIdTime(logId);
+				StringBuilder sb = new StringBuilder();
+
+				sb.AppendLine($"{dateTime}{StartUnderline}{firstLine}{EndUnderline}");
+
+				foreach (var line in output)
+				{
+					sb.AppendLine($"{dateTime}{line}");
+				}
+
+				_log.Add(sb.ToString());
+
+				if (onlyLog)
+					return;
+
+				Console.WriteLine(sb.ToString());
 				Console.ResetColor();
 			}
 		}
