@@ -15,21 +15,21 @@ namespace ProcDumpEx.Options
 
 		internal override async Task<bool> ExecuteAsync(ProcDumpExCommand command)
 		{
-			ConsoleEx.WriteUnderline("ProcDumpEx-Help:");
+			ConsoleEx.WriteUnderline("ProcDumpEx-Help:", command.LogId);
 			ConsoleEx.WriteLine();
-			ConsoleEx.WriteLine("ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.");
-			ConsoleEx.WriteLine("For a better overview, https://github.com/PoppyTheDeveloPaw/ProcDumpEx can be visited");
+			ConsoleEx.WriteLine("ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.", command.LogId);
+			ConsoleEx.WriteLine("For a better overview, https://github.com/PoppyTheDeveloPaw/ProcDumpEx can be visited", command.LogId);
 			ConsoleEx.WriteLine();
-			ConsoleEx.WriteUnderline("ProcDumpEx provides the following additional parameters:");
+			ConsoleEx.WriteUnderline("ProcDumpEx provides the following additional parameters:", command.LogId);
 			ConsoleEx.WriteLine();
 			foreach (var type in Helper.GetTypesWithOptionAttribute(Assembly.GetExecutingAssembly()))
 			{
-				ConsoleEx.WriteUnderline(type.GetOption());
-				ConsoleEx.WriteLine(type.GetDescription());
+				ConsoleEx.WriteUnderline(type.GetOption(), command.LogId);
+				ConsoleEx.WriteLine(type.GetDescription(), command.LogId);
 				ConsoleEx.WriteLine();
 			}
 			ConsoleEx.WriteLine();
-			ConsoleEx.WriteUnderline("Below is the usage of procdump itself");
+			ConsoleEx.WriteUnderline("Below is the usage of procdump itself", command.LogId);
 			var process = new Process();
 
 			try
@@ -41,7 +41,7 @@ namespace ProcDumpEx.Options
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message);
+				ConsoleEx.WriteError(e.Message, command.LogId);
 				return false;
 			}
 

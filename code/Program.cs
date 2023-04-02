@@ -2,7 +2,7 @@
 using ProcDumpEx.code;
 using System.Drawing;
 
-if (Helper.IsProcdumpFileMissing())
+if (Helper.IsProcdumpFileMissing("Base"))
 	return;
 
 for (int i = 0; i < args.Length; i++)
@@ -33,10 +33,12 @@ foreach (var command in commandList)
 await Task.WhenAll(awaitCommands);
 
 if (manuallyExit)
-	ConsoleEx.WriteColor(text, ConsoleColor.DarkMagenta);
+	ConsoleEx.WriteColor(text, ConsoleColor.DarkMagenta, "Base");
+else
+	ConsoleEx.WriteColor("ProcDumpEx was terminated after everything was done", ConsoleColor.DarkMagenta, "Base");
 
 if (commandList.Any(o => o.Log))
-	ConsoleEx.WriteLogFile();
+	ConsoleEx.WriteLogFile("Base");
 
 void Instance_KeyPressedEvent(KeyPressed e, ProcDumpExCommand[] commands)
 {

@@ -8,7 +8,7 @@ namespace ProcDumpEx
 	internal class ProcDumpExCommandParser
 	{
 
-		internal static ProcDumpExCommand? Parse(string commandLine)
+		internal static ProcDumpExCommand? Parse(string commandLine, int logId)
 		{
 			//Split proc dump ex command in different tokens
 			var tokens = CommandSplitList.SplitCommandLineString(commandLine);
@@ -25,7 +25,7 @@ namespace ProcDumpEx
 			}
 			catch (ArgumentException e)
 			{
-				ConsoleEx.WriteError(e.Message);
+				ConsoleEx.WriteError(e.Message, "ProcDumpExCommandParser");
 				return null;
 			}
 
@@ -42,7 +42,7 @@ namespace ProcDumpEx
 					options.Add(option);
 			}
 
-			return new ProcDumpExCommand(options, processes.ProcessNames.Distinct().ToList(), processes.ProcessIds.Distinct().ToList(), tokens.ToString());
+			return new ProcDumpExCommand(options, processes.ProcessNames.Distinct().ToList(), processes.ProcessIds.Distinct().ToList(), tokens.ToString(), logId.ToString());
 		}
 
 		private static (List<string> ProcessNames, List<int> ProcessIds) ExtractProcesses(CommandSplitList tokens)
