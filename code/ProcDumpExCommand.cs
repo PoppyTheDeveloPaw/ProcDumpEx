@@ -11,6 +11,8 @@ namespace ProcDumpEx
 		internal List<string> ProcessNames { get; }
 		internal bool Log { get; }
 
+		internal string LogId { get; }
+
 		private readonly string _baseProcDumpCommand;
 		private readonly List<int> _processIds;
 
@@ -36,10 +38,11 @@ namespace ProcDumpEx
 
 		private readonly ProcessManager _processManager;
 
-		internal ProcDumpExCommand(List<OptionBase> options, List<string> processNames, List<int> processIds, string baseProcDumpCommand)
+		internal ProcDumpExCommand(List<OptionBase> options, List<string> processNames, List<int> processIds, string baseProcDumpCommand, string logId)
 		{
 			ProcessNames = processNames;
 
+			LogId = logId;
 			_procDumpExOptions = options;
 			_processIds = processIds;
 			_baseProcDumpCommand = baseProcDumpCommand;
@@ -94,7 +97,7 @@ namespace ProcDumpEx
 
 			await Task.WhenAll(tasks);
 
-			if (_procDumpExOptions.Any(o => o is (OptionW or OptionInf)))
+			if (_procDumpExOptions.Any(o => o is OptionW) || _inf)
 				await _tcs.Task;
 		}
 
@@ -150,7 +153,7 @@ namespace ProcDumpEx
 				else
 					sb.Append(" The execution for this process name is terminated.");
 
-				ConsoleEx.WriteInfo(sb.ToString());
+				ConsoleEx.WriteInfo(sb.ToString(), LogId);
 				return;
 			}
 
@@ -181,7 +184,7 @@ namespace ProcDumpEx
 			}
 			catch (Exception e) when (e is (ArgumentException or InvalidOperationException or ProcessNotFoundException))
 			{
-				ConsoleEx.WriteInfo($"Currently no process is running with the id: {processId}. Execution for this process id is finished");
+				ConsoleEx.WriteInfo($"Currently no process is running with the id: {processId}. Execution for this process id is finished", LogId);
 			}
 		}
 
@@ -213,20 +216,20 @@ namespace ProcDumpEx
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message);
+				ConsoleEx.WriteError(e.Message, LogId);
 				Stop();
 				return;
 			}
 			catch (GetArchitectureException)
 			{
 				Stop();
-				ConsoleEx.WriteError("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters");
+				ConsoleEx.WriteError("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters", LogId);
 				return;
 			}
 			catch (InvalidProcessorArchitecture e)
 			{
 				Stop();
-				ConsoleEx.WriteError(e.Message);
+				ConsoleEx.WriteError(e.Message, LogId);
 				return;
 			}
 
@@ -234,7 +237,7 @@ namespace ProcDumpEx
 			{
 				ProcDumpInfo procDumpInfo = new ProcDumpInfo(info.FileName, procdump.Id, info.Arguments, process.ProcessName, process.Id);
 
-				_processManager.AddNewMonitoredProcess(process.Id, argument, procdump, procDumpInfo);
+				_processManager.AddNewMonitoredProcess(process.Id, argument, procdump, procDumpInfo, LogId);
 
 				string output = "";
 
@@ -245,13 +248,15 @@ namespace ProcDumpEx
 
 				await Task.WhenAll(Test(procdump.StandardOutput), procdump.WaitForExitAsync());
 
-				ConsoleEx.PrintOutput(procDumpInfo, output, !_showoutput);
+				var outputList = output.Split("\r\n");
+
+				ConsoleEx.PrintOutput(procDumpInfo, outputList, LogId, !_showoutput);
 
 				//Check if procdump output contains help string
 				if (output.Contains("Use -? -e to see example command lines."))
-					ConsoleEx.WriteError("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.");
+					ConsoleEx.WriteError("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.", LogId);
 
-				_processManager.RemoveMonitoredProcess(process.Id, argument, procDumpInfo, !_inf && _procDumpExOptions.Any(o => o is OptionW), output.Contains("Dump count reached"));
+				_processManager.RemoveMonitoredProcess(process.Id, argument, procDumpInfo, !_inf && _procDumpExOptions.Any(o => o is OptionW), output.Contains("Dump count reached"), LogId);
 			}
 		}
 

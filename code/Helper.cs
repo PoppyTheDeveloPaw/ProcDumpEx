@@ -86,7 +86,7 @@ namespace ProcDumpEx
 			throw new ProcDumpFileMissingException(Constants.ProcDump64aFileName, Constants.FullProcdump64aFolderPath, Constants.FullProcdump64aPath);
 		}
 
-		internal static bool IsProcdumpFileMissing()
+		internal static bool IsProcdumpFileMissing(string logId)
 		{
 			bool procdumpFileMissing = false;
 
@@ -96,7 +96,7 @@ namespace ProcDumpEx
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message);
+				ConsoleEx.WriteError(e.Message, logId);
 				procdumpFileMissing = true;
 			}
 
@@ -106,7 +106,7 @@ namespace ProcDumpEx
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message);
+				ConsoleEx.WriteError(e.Message, logId);
 				procdumpFileMissing = true;
 			}
 
@@ -116,7 +116,7 @@ namespace ProcDumpEx
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message);
+				ConsoleEx.WriteError(e.Message, logId);
 				procdumpFileMissing = true;
 			}
 

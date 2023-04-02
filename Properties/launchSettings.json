@@ -2,7 +2,7 @@
   "profiles": {
     "ProcDumpEx": {
       "commandName": "Project",
-      "commandLineArgs": "-cfg C:\\Users\\alexa\\Downloads\\cfg.txt"
+      "commandLineArgs": "-log -ma -inf notepad.exe"
     }
   }
 }

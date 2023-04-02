@@ -41,11 +41,12 @@ namespace ProcDumpEx.code
 			List<ProcDumpExCommand> commands = new List<ProcDumpExCommand>();
 			try
 			{
+				int idCounter = 1;
 				foreach (var argsCommandLine in ManageArguments(args))
 				{
-					if (ProcDumpExCommandParser.Parse(argsCommandLine) is not { } command)
+					if (ProcDumpExCommandParser.Parse(argsCommandLine, idCounter++) is not { } command)
 					{
-						ConsoleEx.WriteError($"Specified parameters ({argsCommandLine}) could not be parsed. ProcDumpEx is terminated. Use the parameter \"-help\" to display examples and allowed parameters");
+						ConsoleEx.WriteError($"Specified parameters ({argsCommandLine}) could not be parsed. ProcDumpEx is terminated. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager");
 						succeeded = false;
 						continue;
 					}
@@ -54,7 +55,7 @@ namespace ProcDumpEx.code
 			}
 			catch (ManageArgumentsException e)
 			{
-				ConsoleEx.WriteError(e.Message);
+				ConsoleEx.WriteError(e.Message, "ArgumentManager");
 				succeeded = false;
 			}
 
