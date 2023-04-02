@@ -130,6 +130,20 @@ The '-w' parameter is a parameter used by ProcDump itself. When used in conjunct
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `procdumpex.exe -ma -w -e -pn "<process 1>.exe, <process 2>.exe“` | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -e <PID of process 2>` |
 
+### Parameter '-log'
+
+If the -log parameter is specified, a log file is written when ProcDumpEx exits, which contains the complete output of the console.
+
+#### Examples:
+
+| ProcDumpEx call                                                        | Resulting Procdump calls                                                                                                |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `procdumpex.exe -log -ma -w -e -pn "<process 1>.exe, <process 2>.exe“` | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -e <PID of process 2>` |
+
+### Parameter '-cfg'
+
+With the prameter -cfg the path to a file can be specified, in which several ProcDumpEx commands stand. Here it is to be paid attention to the fact that per line exactly one ProcDumpEx command may stand.
+
 ## Hint
 
 It is also possible to combine the parameters '-memthd', '-memthdl', '-cputhd' and '-cputhdl', which would lead to the following calls
