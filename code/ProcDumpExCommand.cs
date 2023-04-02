@@ -9,6 +9,7 @@ namespace ProcDumpEx
 	internal class ProcDumpExCommand
 	{
 		internal List<string> ProcessNames { get; }
+		internal bool Log { get; }
 
 		private readonly string _baseProcDumpCommand;
 		private readonly List<int> _processIds;
@@ -44,6 +45,10 @@ namespace ProcDumpEx
 			_baseProcDumpCommand = baseProcDumpCommand;
 
 			_processManager = new ProcessManager();
+
+			Log = _procDumpExOptions.Any(o => o is OptionLog);
+			if (Log)
+				_procDumpExOptions.RemoveAll(o => o is OptionLog);
 
 			_inf = _procDumpExOptions.Any(o => o is OptionInf);
 			if (_inf)
@@ -240,9 +245,7 @@ namespace ProcDumpEx
 
 				await Task.WhenAll(Test(procdump.StandardOutput), procdump.WaitForExitAsync());
 
-
-				if (_showoutput)
-					ConsoleEx.PrintOutput(procDumpInfo, output);
+				ConsoleEx.PrintOutput(procDumpInfo, output, !_showoutput);
 
 				//Check if procdump output contains help string
 				if (output.Contains("Use -? -e to see example command lines."))

@@ -6,6 +6,8 @@ namespace ProcDumpEx
 {
 	internal static class ConsoleEx
 	{
+		private static List<string> _log = new List<string>();
+
 		const int STD_OUTPUT_HANDLE = -11;
 		const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
 
@@ -53,13 +55,38 @@ namespace ProcDumpEx
 			Console.ResetColor();
 		}
 
-		public static void Write(string message) => Console.Write($"[{GetTimeNow()}]: {message}");
-		public static void WriteLine(string message) => Console.WriteLine($"[{GetTimeNow()}]: {message}");
-		public static void WriteLine() => Console.WriteLine(string.Empty);
+		public static void Write(string message)
+		{
+			string outputMessage = $"[{GetTimeNow()}]: {message}";
+			_log.Add(outputMessage);
+			Console.Write(outputMessage);
+		}
+
+		public static void WriteLine(string message, bool onlyLog = false)
+		{
+			string outputMessage = $"[{GetTimeNow()}]: {message}";
+			_log.Add(outputMessage);
+			if (!onlyLog)
+				Console.WriteLine(outputMessage);
+		}
+
+		public static void WriteLine()
+		{
+			string outputMessage = string.Empty;
+			_log.Add(outputMessage);
+			Console.WriteLine(outputMessage);
+		}
+
+		public static void WriteLogFile() 
+		{
+			string fileName = $"Log_{DateTime.UtcNow.ToString("yyyyMMdd_HHmmss")}.txt";
+			File.WriteAllLines(fileName, _log.Select(x => x.Replace(StartUnderline, "").Replace(EndUnderline, "")));
+			ConsoleEx.WriteColor($"Log file saved with the name {fileName}", ConsoleColor.DarkMagenta);
+		}
 
 		private static string GetTimeNow() => DateTime.UtcNow.ToString("G", CultureInfo.GetCultureInfo("de-DE"));
 
-	public static void WriteError(string errorMessage, Exception e)
+		public static void WriteError(string errorMessage, Exception e)
 		{
 			StringBuilder sbErrorMessage = new StringBuilder();
 
@@ -76,6 +103,9 @@ namespace ProcDumpEx
 			WriteError(sb.ToString());
 		}
 
+		private const string StartUnderline = "\x1B[4m";
+		private const string EndUnderline = "\x1B[24m";
+
 		public static void WriteUnderline(string s)
 		{
 			var handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -83,11 +113,11 @@ namespace ProcDumpEx
 			GetConsoleMode(handle, out mode);
 			mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 			SetConsoleMode(handle, mode);
-			WriteLine($"\x1B[4m{s}\x1B[24m");
+			WriteLine($"{StartUnderline}{s}{EndUnderline}");
 		}
 
 		private static object _lockObject = new object();
-		public static void PrintOutput(ProcDumpInfo info, string output)
+		public static void PrintOutput(ProcDumpInfo info, string output, bool onlyLog = false)
 		{
 			lock (_lockObject)
 			{
@@ -98,7 +128,7 @@ namespace ProcDumpEx
 				mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 				SetConsoleMode(handle, mode);
 				string firstLine = $"Output of {info.UsedProcDumpFileName} / Process id: {info.ProcDumpProcessId}. Examined Process: {info.ExaminedProcessName}";
-				WriteLine($"\x1B[4m{firstLine}\x1B[24m\n{output}");
+				WriteLine($"{StartUnderline}{firstLine}{EndUnderline}\n{output}", onlyLog);
 				Console.ResetColor();
 			}
 		}
