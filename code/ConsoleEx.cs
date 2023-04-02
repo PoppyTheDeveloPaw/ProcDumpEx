@@ -59,7 +59,7 @@ namespace ProcDumpEx
 		}
 
 		private static object _lockObject = new object();
-		public static void PrintOutput(string procdumpFileName, int procdumpProcessId, string examinedProcessName, string output)
+		public static void PrintOutput(ProcDumpInfo info, string output)
 		{
 			lock (_lockObject)
 			{
@@ -69,7 +69,7 @@ namespace ProcDumpEx
 				GetConsoleMode(handle, out mode);
 				mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 				SetConsoleMode(handle, mode);
-				string firstLine = $"Output of {procdumpFileName} / Process id: {procdumpProcessId}. Examined Process: {examinedProcessName}";
+				string firstLine = $"Output of {info.UsedProcDumpFileName} / Process id: {info.ProcDumpProcessId}. Examined Process: {info.ExaminedProcessName}";
 				Console.WriteLine($"\x1B[4m{firstLine}\x1B[24m\n{output}");
 				Console.ResetColor();
 			}

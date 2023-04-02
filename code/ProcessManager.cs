@@ -7,6 +7,7 @@ namespace ProcDumpEx
 	internal class ProcessManager
 	{
 		private Dictionary<ProcdumpProcessIdentifier, Process> _currentMonitoredProcesses;
+		private bool _killAllCalled = false;
 
 		public ProcessManager()
 		{
@@ -15,12 +16,34 @@ namespace ProcDumpEx
 
 		public bool IsMonitored(int processId, string arguments) => _currentMonitoredProcesses.ContainsKey(new(processId, arguments));
 
-		public void AddNewMonitoredProcess(int processId, string arguments, Process process) => _currentMonitoredProcesses[new(processId, arguments)] = process;
+		public bool IsMonitored(string processName) => _currentMonitoredProcesses.Values.Any(o => Path.GetFileNameWithoutExtension(o.ProcessName) == Path.GetFileNameWithoutExtension(processName));
 
-		public bool RemoveMonitoredProcess(int processId, string arguments) => _currentMonitoredProcesses.Remove(new(processId, arguments));
+		public void AddNewMonitoredProcess(int processId, string arguments, Process process, ProcDumpInfo info) 
+		{
+			_currentMonitoredProcesses[new(processId, arguments)] = process;
+			Console.WriteLine($"{info.UsedProcDumpFileName} started with process id: {info.ProcDumpProcessId} / arguments: {info.UsedArguments}. Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}");
+		}
+
+		object _removeLock = new object();
+
+		public bool RemoveMonitoredProcess(int processId, string arguments, ProcDumpInfo info, bool writeIdleMessage)
+		{
+			lock( _removeLock )
+			{
+				bool value = _currentMonitoredProcesses.Remove(new(processId, arguments));
+
+				Console.WriteLine($"{info.UsedProcDumpFileName} finished. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}");
+
+				if (writeIdleMessage && !_killAllCalled && !_currentMonitoredProcesses.Any())
+					ConsoleEx.WriteInfo("Currently all active ProcDump processes have been terminated. ProcDumpEx is idle until new processes are started.");
+
+				return value;
+			}
+		}
 
 		public void KillAll()
 		{
+			_killAllCalled = true;
 			foreach (var itemPair in _currentMonitoredProcesses)
 			{
 				itemPair.Value.Kill();

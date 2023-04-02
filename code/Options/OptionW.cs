@@ -18,6 +18,7 @@ namespace ProcDumpEx.Options
 
 		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
 		{
+			ConsoleEx.WriteInfo($"Until ProcDumpEx is terminated, it waits for new instances of the specified process names ({string.Join(", ", command.ProcessNames)}). For newly started process instances ProcDump is executed with the specified parameters");
 			_command = command;
 			try
 			{
