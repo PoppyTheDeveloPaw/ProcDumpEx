@@ -31,7 +31,7 @@ namespace ProcDumpEx
 			if (Handler is null)
 			{
 				Handler += CtrlTypeEventHandler;
-				SetConsoleCtrlHandler(Handler, true);
+				SetConsoleCtrlHandler(Handler, false);
 			}
 
 			_thread = new Thread(ThreadMethod);

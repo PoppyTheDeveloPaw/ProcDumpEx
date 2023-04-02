@@ -16,19 +16,19 @@ namespace ProcDumpEx.Options
 		internal override async Task<bool> ExecuteAsync(ProcDumpExCommand command)
 		{
 			ConsoleEx.WriteUnderline("ProcDumpEx-Help:");
-			Console.WriteLine();
-			Console.WriteLine("ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.");
-			Console.WriteLine("For a better overview, https://github.com/PoppyTheDeveloPaw/ProcDumpEx can be visited");
-			Console.WriteLine();
+			ConsoleEx.WriteLine();
+			ConsoleEx.WriteLine("ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.");
+			ConsoleEx.WriteLine("For a better overview, https://github.com/PoppyTheDeveloPaw/ProcDumpEx can be visited");
+			ConsoleEx.WriteLine();
 			ConsoleEx.WriteUnderline("ProcDumpEx provides the following additional parameters:");
-			Console.WriteLine();
+			ConsoleEx.WriteLine();
 			foreach (var type in Helper.GetTypesWithOptionAttribute(Assembly.GetExecutingAssembly()))
 			{
 				ConsoleEx.WriteUnderline(type.GetOption());
-				Console.WriteLine(type.GetDescription());
-				Console.WriteLine();
+				ConsoleEx.WriteLine(type.GetDescription());
+				ConsoleEx.WriteLine();
 			}
-			Console.WriteLine();
+			ConsoleEx.WriteLine();
 			ConsoleEx.WriteUnderline("Below is the usage of procdump itself");
 			var process = new Process();
 

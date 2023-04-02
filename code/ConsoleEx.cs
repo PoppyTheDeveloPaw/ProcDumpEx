@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ProcDumpEx
@@ -20,32 +21,45 @@ namespace ProcDumpEx
 		public static void WriteInfo(string infoMessage)
 		{
 			Console.ForegroundColor = ConsoleColor.Blue;
-			Console.WriteLine(infoMessage);
+			WriteLine(infoMessage);
 			Console.ResetColor();
 		}
 
 		public static void WriteError(string errorMessage)
 		{
 			Console.ForegroundColor = ConsoleColor.Red;
-			Console.WriteLine(errorMessage);
+			WriteLine(errorMessage);
 			Console.ResetColor();
 		}
 
 		public static void WriteSuccess(string message)
 		{
 			Console.ForegroundColor = ConsoleColor.Green;
-			Console.WriteLine(message);
+			WriteLine(message);
 			Console.ResetColor();
 		}
 
 		public static void WriteFailure(string message)
 		{
 			Console.ForegroundColor = ConsoleColor.DarkYellow;
-			Console.WriteLine(message);
+			WriteLine(message);
 			Console.ResetColor();
 		}
 
-		public static void WriteError(string errorMessage, Exception e)
+		public static void WriteColor(string message, ConsoleColor color)
+		{
+			Console.ForegroundColor = color;
+			WriteLine(message);
+			Console.ResetColor();
+		}
+
+		public static void Write(string message) => Console.Write($"[{GetTimeNow()}]: {message}");
+		public static void WriteLine(string message) => Console.WriteLine($"[{GetTimeNow()}]: {message}");
+		public static void WriteLine() => Console.WriteLine(string.Empty);
+
+		private static string GetTimeNow() => DateTime.Now.ToString("G", CultureInfo.GetCultureInfo("de-DE"));
+
+	public static void WriteError(string errorMessage, Exception e)
 		{
 			StringBuilder sbErrorMessage = new StringBuilder();
 
@@ -69,7 +83,7 @@ namespace ProcDumpEx
 			GetConsoleMode(handle, out mode);
 			mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 			SetConsoleMode(handle, mode);
-			Console.WriteLine($"\x1B[4m{s}\x1B[24m");
+			WriteLine($"\x1B[4m{s}\x1B[24m");
 		}
 
 		private static object _lockObject = new object();
@@ -84,7 +98,7 @@ namespace ProcDumpEx
 				mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 				SetConsoleMode(handle, mode);
 				string firstLine = $"Output of {info.UsedProcDumpFileName} / Process id: {info.ProcDumpProcessId}. Examined Process: {info.ExaminedProcessName}";
-				Console.WriteLine($"\x1B[4m{firstLine}\x1B[24m\n{output}");
+				WriteLine($"\x1B[4m{firstLine}\x1B[24m\n{output}");
 				Console.ResetColor();
 			}
 		}
