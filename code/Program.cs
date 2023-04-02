@@ -34,6 +34,9 @@ await command.RunAsync();
 if (manuallyExit)
 	ConsoleEx.WriteColor(text, ConsoleColor.DarkMagenta);
 
+if (command.Log)
+	ConsoleEx.WriteLogFile();
+
 void Instance_KeyPressedEvent(KeyPressed e, ProcDumpExCommand command)
 {
 	manuallyExit = true;
