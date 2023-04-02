@@ -1,4 +1,4 @@
-﻿using ProcDumpEx.Exceptions;
+using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
 using ProcDumpExExceptions;
 using System.Diagnostics;
@@ -215,16 +215,15 @@ namespace ProcDumpEx
 			catch (GetArchitectureException)
 			{
 				Stop();
-				Console.WriteLine("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters");
+				ConsoleEx.WriteError("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters");
 				return;
 			}
 			catch (InvalidProcessorArchitecture e)
 			{
 				Stop();
-				Console.WriteLine(e.Message);
+				ConsoleEx.WriteError(e.Message);
 				return;
 			}
-
 
 			if (Process.Start(info) is { } procdump)
 			{
@@ -271,13 +270,12 @@ namespace ProcDumpEx
 			//Should never happen
 			throw new InvalidProcessorArchitecture(architecture, process);
 		}
-
+        
 		private async Task ProcessManager_ProcDumpProcessTerminatedAsync(ProcDumpInfo e)
 		{
 			if (_inf)
 				await ExecuteAsync(e.ExaminedProcessId);
 		}
-
 	}
 
 	internal struct ProcDumpInfo

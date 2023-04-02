@@ -2,7 +2,7 @@
   "profiles": {
     "ProcDumpEx": {
       "commandName": "Project",
-      "commandLineArgs": "-ma -memthd \"1000,2000,3000\" -n 2 -inf -pn \"MemTest64.exe\""
+      "commandLineArgs": "-ma -memthd \"1000,2000,3000\" -n 2 -pn \"MemTest64.exe\""
     }
   }
 }

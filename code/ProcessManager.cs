@@ -23,7 +23,7 @@ namespace ProcDumpEx
 		public void AddNewMonitoredProcess(int processId, string arguments, Process process, ProcDumpInfo info) 
 		{
 			_currentMonitoredProcesses[new(processId, arguments)] = process;
-			Console.WriteLine($"{info.UsedProcDumpFileName} started with process id: {info.ProcDumpProcessId} / arguments: {info.UsedArguments}. Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}");
+			ConsoleEx.WriteLine($"{info.UsedProcDumpFileName} started with process id: {info.ProcDumpProcessId} / arguments: {info.UsedArguments}. Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}");
 		}
 
 		object _removeLock = new object();

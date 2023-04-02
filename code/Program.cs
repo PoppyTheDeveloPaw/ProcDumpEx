@@ -1,4 +1,5 @@
 ﻿using ProcDumpEx;
+using System.Drawing;
 
 if (Helper.IsProcdumpFileMissing())
 	return;
@@ -25,10 +26,25 @@ if (ProcDumpExCommandParser.Parse(argsCommandLine) is not { } command)
 KeyEvent.Instance.KeyPressedEvent += (sender, e) => Instance_KeyPressedEvent(e, command);
 AppDomain.CurrentDomain.ProcessExit += (sender, e) => ProcessExitEvent(command);
 
+bool manuallyExit = false;
+string text = string.Empty;
+
 await command.RunAsync();
+
+if (manuallyExit)
+	ConsoleEx.WriteColor(text, ConsoleColor.DarkMagenta);
 
 void Instance_KeyPressedEvent(KeyPressed e, ProcDumpExCommand command)
 {
+	manuallyExit = true;
+	string key = e switch
+	{
+		KeyPressed.Ctrl_Break => "CTRL + Break",
+		KeyPressed.Ctrl_C => "CTRL + C",
+		KeyPressed.X => "X",
+		_ => "Unknown"
+	};
+	text = $"ProcDump was terminated manually by pressing the \"{key}\" key";
 	command.Stop();
 }
 
