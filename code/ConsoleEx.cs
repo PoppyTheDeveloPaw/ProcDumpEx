@@ -57,7 +57,7 @@ namespace ProcDumpEx
 		public static void WriteLine(string message) => Console.WriteLine($"[{GetTimeNow()}]: {message}");
 		public static void WriteLine() => Console.WriteLine(string.Empty);
 
-		private static string GetTimeNow() => DateTime.Now.ToString("G", CultureInfo.GetCultureInfo("de-DE"));
+		private static string GetTimeNow() => DateTime.UtcNow.ToString("G", CultureInfo.GetCultureInfo("de-DE"));
 
 	public static void WriteError(string errorMessage, Exception e)
 		{
