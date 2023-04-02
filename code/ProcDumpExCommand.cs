@@ -58,7 +58,7 @@ namespace ProcDumpEx
 				_procDumpExOptions.RemoveAll(o => o is OptionShowOutput);
 
 			if (_inf)
-				_processManager.ProcDumpProcessTerminated += async (s, e) => await ProcessManager_ProcDumpProcessTerminatedAsync(s, e);
+				_processManager.ProcDumpProcessTerminated += async (_, e) => await ProcessManager_ProcDumpProcessTerminatedAsync(e);
 		}
 
 		internal async Task RunAsync()
@@ -272,7 +272,7 @@ namespace ProcDumpEx
 			throw new InvalidProcessorArchitecture(architecture, process);
 		}
 
-		private async Task ProcessManager_ProcDumpProcessTerminatedAsync(object? sender, ProcDumpInfo e)
+		private async Task ProcessManager_ProcDumpProcessTerminatedAsync(ProcDumpInfo e)
 		{
 			if (_inf)
 				await ExecuteAsync(e.ExaminedProcessId);
