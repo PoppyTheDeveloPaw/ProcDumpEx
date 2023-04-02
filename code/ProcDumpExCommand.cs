@@ -134,15 +134,7 @@ namespace ProcDumpEx
 
 			if (!processes.Any())
 			{
-				StringBuilder sb = new StringBuilder();
-				sb.Append($"Currently there is no process with the name {processName} running.");
-
-				if (_procDumpExOptions.Any(o => o is OptionW))
-					sb.Append(" Waiting until a process with this name is started.");
-				else
-					sb.Append(" The execution for this process name is terminated.");
-
-				ConsoleEx.WriteInfo(sb.ToString());
+				WriteProcessNotFoundInfoMessage(processName);
 				return;
 			}
 
@@ -222,12 +214,12 @@ namespace ProcDumpEx
 				return;
 			}
 
+
 			if (Process.Start(info) is { } procdump)
 			{
-				string processName = process.ProcessName;
+				ProcDumpInfo procDumpInfo = new ProcDumpInfo(info.FileName, procdump.Id, info.Arguments, process.ProcessName);
 
-				_processManager.AddNewMonitoredProcess(process.Id, argument, procdump);
-				Console.WriteLine($"{Path.GetFileName(info.FileName)} started with process id: {procdump.Id} / arguments: {info.Arguments}");
+				_processManager.AddNewMonitoredProcess(process.Id, argument, procdump, procDumpInfo);
 
 				string output = "";
 
@@ -238,16 +230,14 @@ namespace ProcDumpEx
 
 				await Task.WhenAll(Test(procdump.StandardOutput), procdump.WaitForExitAsync());
 
-				_processManager.RemoveMonitoredProcess(process.Id, argument);
-
+				_processManager.RemoveMonitoredProcess(process.Id, argument, procDumpInfo, !_inf && _procDumpExOptions.Any(o => o is OptionW));
+				
 				//Check if procdump output contains help string
 				if (output.Contains("Use -? -e to see example command lines."))
 					ConsoleEx.WriteError("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.");
 
 				if (_showoutput)
-					ConsoleEx.PrintOutput(Path.GetFileName(info.FileName), procdump.Id, processName, output);
-
-				Console.WriteLine($"{Path.GetFileName(info.FileName)} finished. Id: {procdump.Id}, Examined process: {processName}");
+					ConsoleEx.PrintOutput(procDumpInfo, output);
 
 				if (_inf)
 					await ExecuteAsync(procdump.Id);
@@ -271,6 +261,35 @@ namespace ProcDumpEx
 
 			//Should never happen
 			throw new InvalidProcessorArchitecture(architecture, process);
+		}
+
+		private void WriteProcessNotFoundInfoMessage(string processName)
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.Append($"Currently there is no process with the name {processName} running.");
+
+			if (_procDumpExOptions.Any(o => o is OptionW))
+				sb.Append(" ProcDumpEx is idle for this process name until a new process instance is started");
+			else
+				sb.Append(" The execution for this process name is terminated.");
+
+			ConsoleEx.WriteInfo(sb.ToString());
+		}
+	}
+
+	internal struct ProcDumpInfo
+	{
+		internal string UsedProcDumpFileName { get; }
+		internal int ProcDumpProcessId { get; }
+		internal string UsedArguments { get; }
+		internal string ExaminedProcessName { get; }
+
+		internal ProcDumpInfo(string procDump, int procDumpProcessId, string usedArguments, string examinedProcessName)
+		{
+			UsedProcDumpFileName = Path.GetFileName(procDump);
+			ProcDumpProcessId = procDumpProcessId;
+			UsedArguments = usedArguments;
+			ExaminedProcessName = examinedProcessName;
 		}
 	}
 }
