@@ -1,7 +1,9 @@
-﻿A configuration file can also be used to run ProcDumpEx. In this file parameters for ProcDumpEx can be defined in several lines. Each line is treated like a separate ProcDumpEx process.
+﻿The parameter "-cfg" reads a user-created configuration file. This file contains the command-line parameters with which ProcDumpEx should be started. 
+Several lines can be used to specify different versions of command-line parameters. Each line is treated like a separate ProcDumpEx process. 
+The file extension of the configuration file does not matter.
 
 Examples:
-1.	procdumpex.exe -cfg C:\SampleFile.txt
+1.	procdumpex.exe -cfg <path of cfg file>
 
 Sample content of SampleFile.txt:
 

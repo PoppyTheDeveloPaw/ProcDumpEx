@@ -27,16 +27,17 @@
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionPn_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionW_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionShowOutput_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionLog_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionCfg_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
 
 		<!--Important files-->
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)README.md&quot; &quot;$(TargetDir)&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)LICENSE&quot; &quot;$(TargetDir)&quot;" />
 	</Target>
-
+	
 	<ItemGroup>
 		<PackageReference Include="Gapotchenko.FX.Diagnostics.Process" Version="2022.2.7" />
 		<PackageReference Include="System.Management" Version="7.0.0" />
 		<PackageReference Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
 	</ItemGroup>
-
 </Project>

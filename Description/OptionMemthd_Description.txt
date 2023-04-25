@@ -1,4 +1,6 @@
-﻿The 'memthd' parameter extends the ProcDump '-m' parameter. By using the 'memthd' parameter, users can set multiple memory thresholds for one or more processes without having to manually open ProcDump instances. It is also possible to combine this parameter with the '-pn' and '-inf' parameters. The values provided are expressed in units of megabytes (MB).
+﻿The 'memthd' parameter extends the ProcDump '-m' parameter. By using the 'memthd' parameter, users can set multiple memory 
+thresholds for one or more processes without having to manually open ProcDump instances. It is also possible to combine this 
+parameter with the '-pn' and '-inf' parameters. The values provided are expressed in units of megabytes (MB).
 
 Example:
 1.	procdumpex.exe -ma -memthdl "100,200,300" -pn "<process 1>,<prozess 2>,<prozess 3>"

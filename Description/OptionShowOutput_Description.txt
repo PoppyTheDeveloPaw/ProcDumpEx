@@ -1,4 +1,6 @@
-﻿Since ProcDumpEx starts several ProcDump instances at the same time, the normal output of ProcDump is suppressed and only displayed when a ProcDump instance has been started or terminated. With the parameter -showoutput, the output of the ProcDump instances is displayed after they have been terminated.
+﻿Since ProcDumpEx starts several ProcDump instances at the same time, the normal output of ProcDump is suppressed and 
+only displayed when a ProcDump instance has been started or terminated. With the parameter -showoutput, 
+the output of the ProcDump instances is displayed after they have been terminated.
 
 Example:
 1.	procdumpex.exe -showoutput -ma -e <process 1.exe>

@@ -22,19 +22,19 @@ namespace ProcDumpEx
 
 		internal static string GetOption(this Type type) => GetOptionAttribute(type).Option;
 		internal static bool GetValueExpected(this Type type) => GetOptionAttribute(type).ValueExpected;
-		internal static string GetDescription(this Type type)
+		internal static string[] GetDescription(this Type type)
 		{
 			string filePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Description\\{type.Name}_Description.txt"));
 
 			if (!File.Exists(filePath))
-				return $"Description file for parameter \"{type.GetOption()}\" not available. Expected under {filePath}";
+				return new string[] { $"Description file for parameter \"{type.GetOption()}\" not available. Expected under {filePath}" };
 
-			string descContent = File.ReadAllText(filePath);
+			var descContent = File.ReadAllLines(filePath);
 
-			if (!string.IsNullOrEmpty(descContent))
+			if (descContent.Any(o => !string.IsNullOrEmpty(o)))
 				return descContent;
 
-			return $"The description file {filePath} exists but is empty";
+			return new string[] { $"The description file {filePath} exists but is empty" };
 		}
 
 		internal static OptionAttribute GetOptionAttribute(this Type type) => (OptionAttribute)type.GetCustomAttribute(typeof(OptionAttribute))!;

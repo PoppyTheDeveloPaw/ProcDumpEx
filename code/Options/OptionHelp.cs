@@ -25,7 +25,10 @@ namespace ProcDumpEx.Options
 			foreach (var type in Helper.GetTypesWithOptionAttribute(Assembly.GetExecutingAssembly()))
 			{
 				ConsoleEx.WriteUnderline(type.GetOption(), command.LogId);
-				ConsoleEx.WriteLine(type.GetDescription(), command.LogId);
+
+				foreach (string descLine in type.GetDescription())
+					ConsoleEx.WriteLine(descLine, command.LogId);
+
 				ConsoleEx.WriteLine();
 			}
 			ConsoleEx.WriteLine();
