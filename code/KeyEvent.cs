@@ -4,12 +4,6 @@ namespace ProcDumpEx
 {
 	internal class KeyEvent
 	{
-		[DllImport("Kernel32")]
-		private static extern bool SetConsoleCtrlHandler(EventHandler handler, bool add);
-
-		private delegate bool EventHandler(CtrlType sig);
-		private static event EventHandler? Handler;
-
 		internal event EventHandler<KeyPressed>? KeyPressedEvent;
 
 		private readonly Thread _thread;
@@ -28,29 +22,29 @@ namespace ProcDumpEx
 
 		public KeyEvent()
 		{
-			if (Handler is null)
-			{
-				Handler += CtrlTypeEventHandler;
-				SetConsoleCtrlHandler(Handler, false);
-			}
+			Console.CancelKeyPress += Console_CancelKeyPress;
 
+			//Thread to detect if X was pressed
 			_thread = new Thread(ThreadMethod);
 			_thread.IsBackground = true;
 			_thread.Start();
 		}
 
-		private bool CtrlTypeEventHandler(CtrlType sig)
+		private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
 		{
-			switch (sig)
+			e.Cancel = true;
+
+			switch (e.SpecialKey)
 			{
-				case CtrlType.CTRL_C_EVENT:
+				case ConsoleSpecialKey.ControlC:
 					KeyPressedEvent?.Invoke(this, KeyPressed.Ctrl_C);
 					break;
-				case CtrlType.CTRL_BREAK_EVENT:
+				case ConsoleSpecialKey.ControlBreak:
 					KeyPressedEvent?.Invoke(this, KeyPressed.Ctrl_Break);
 					break;
 			}
-			return true;
+
+			throw new NotImplementedException();
 		}
 
 		private void ThreadMethod()
