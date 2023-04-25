@@ -78,14 +78,14 @@ namespace ProcDumpEx
 
 		public static void WriteLogFile(string logId) 
 		{
-			string fileName = $"Log_{DateTime.UtcNow.ToString("yyyyMMdd_HHmmss")}.txt";
+			string fileName = $"Log_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.txt";
 			File.WriteAllLines(fileName, _log.Select(x => x.Replace(StartUnderline, "").Replace(EndUnderline, "")));
 			ConsoleEx.WriteColor($"Log file saved with the name {fileName}", ConsoleColor.DarkMagenta, logId);
 		}
 
 		private static string GetIdTime(string logId) => $"[{logId}][{GetTimeNow()}]: ";
 
-		private static string GetTimeNow() => DateTime.UtcNow.ToString("G", CultureInfo.GetCultureInfo("de-DE"));
+		private static string GetTimeNow() => DateTime.Now.ToString("G", CultureInfo.GetCultureInfo("de-DE"));
 
 		public static void WriteError(string errorMessage, Exception e, string logId)
 		{
