@@ -11,6 +11,8 @@ namespace ProcDumpEx
 		internal List<string> ProcessNames { get; }
 		internal bool Log { get; }
 
+		internal OptionCfg? OptionCfg { get; }
+
 		internal string LogId { get; }
 
 		private readonly string _baseProcDumpCommand;
@@ -64,6 +66,8 @@ namespace ProcDumpEx
 			_showoutput = _procDumpExOptions.Any(o => o is OptionShowOutput);
 			if (_showoutput)
 				_procDumpExOptions.RemoveAll(o => o is OptionShowOutput);
+
+			OptionCfg =	_procDumpExOptions.FirstOrDefault(o => o is OptionCfg) as OptionCfg;
 
 			if (_inf)
 				_processManager.ProcDumpProcessTerminated += async (_, e) => await ProcessManager_ProcDumpProcessTerminatedAsync(e);

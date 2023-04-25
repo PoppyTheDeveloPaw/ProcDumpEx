@@ -1,6 +1,6 @@
 ﻿namespace ProcDumpEx.Options
 {
-	[Option("-64", true)]
+	[Option("-64", false)]
 	internal class Option64 : OptionBase
 	{
 		internal override bool IsCommandCreator => false;
