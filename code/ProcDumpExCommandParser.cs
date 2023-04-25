@@ -31,7 +31,7 @@ namespace ProcDumpEx
 			{
 				processes = ExtractProcesses(tokens);
 			}
-			catch (Exception e) when (e is ArgumentException or ValueExpectedException or NoValueExpectedException)
+			catch (Exception e) when (e is ArgumentException or ValueExpectedException)
 			{
 				ConsoleEx.WriteError(e.Message, "ProcDumpExCommandParser");
 				return null;
@@ -88,7 +88,7 @@ namespace ProcDumpEx
 
 			(bool IsOption, object Value)? nextToken = index + 1 < tokens.Count ? tokens[index + 1] : null;
 
-			if (!nextToken.HasValue || nextToken.Value.IsOption)
+			if (!nextToken.HasValue || nextToken.Value.IsOption || !type.GetValueExpected())
 			{
 				if (type.GetValueExpected())
 					throw new ValueExpectedException("For the option {0} one or more values are expected", type.GetOption());
@@ -97,9 +97,6 @@ namespace ProcDumpEx
 
 				return (OptionBase)Activator.CreateInstance(type)!;
 			}
-
-			if (!type.GetValueExpected())
-				throw new NoValueExpectedException(type.GetOption());
 
 			tokens.RemoveAt(index + 1);
 			tokens.RemoveAt(index);
