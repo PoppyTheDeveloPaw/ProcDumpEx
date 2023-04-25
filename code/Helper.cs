@@ -1,4 +1,5 @@
-﻿using ProcDumpEx.Exceptions;
+﻿using Microsoft.Win32;
+using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
 using System.Diagnostics;
 using System.Management;
@@ -152,11 +153,29 @@ namespace ProcDumpEx
 			return false;
 		}
 
-		internal static bool CheckIfStartedAsAdmin()
+		internal static bool CheckEula()
 		{
-			WindowsIdentity identity = WindowsIdentity.GetCurrent();
-			WindowsPrincipal principal = new WindowsPrincipal(identity);
-			return principal.IsInRole(WindowsBuiltInRole.Administrator);
+			bool eulaAccepted = false;
+
+			if (Registry.GetValue("HKEY_CURRENT_USER\\Software\\Sysinternals\\ProcDump", "EulaAccepted", 0) is int regValue)
+				eulaAccepted = regValue == 1;
+
+			if (!eulaAccepted)
+			{
+				ConsoleEx.WriteInfo("Before you can use ProcDumpEx you must accept the End User License Agreement (EULA) of ProcDump. Do you want to do this now (y/n):", "Helper");
+
+				string? value = Console.ReadLine();
+
+				if (!string.IsNullOrEmpty(value) && value.ToLower() != "y")
+				{
+					ConsoleEx.WriteError("By entering anything other than \"y\" you have not agreed to ProcDump's End User License Agreement (EULA). ProcDumpEx is terminated.", "Helper");
+					return false;
+				}
+
+				Registry.SetValue("HKEY_CURRENT_USER\\Software\\Sysinternals\\ProcDump", "EulaAccepted", 1);
+			}
+
+			return true;
 		}
 	}
 }

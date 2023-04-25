@@ -3,6 +3,9 @@
 if (!Helper.CheckAdministratorPrivileges())
 	return;
 
+if (!Helper.CheckEula())
+	return;
+
 if (Helper.IsProcdumpFileMissing("Base"))
 	return;
 
