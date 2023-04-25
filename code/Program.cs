@@ -1,5 +1,4 @@
 ﻿using ProcDumpEx;
-using ProcDumpEx.code;
 
 if (!Helper.CheckAdministratorPrivileges())
 	return;

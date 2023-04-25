@@ -1,6 +1,6 @@
 ﻿using ProcDumpEx.Exceptions;
 
-namespace ProcDumpEx.code
+namespace ProcDumpEx
 {
 	internal static class ArgumentManager
 	{

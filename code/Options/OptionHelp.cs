@@ -15,6 +15,12 @@ namespace ProcDumpEx.Options
 
 		internal override async Task<bool> ExecuteAsync(ProcDumpExCommand command)
 		{
+			Version? version = Assembly.GetExecutingAssembly().GetName().Version;
+
+			ConsoleEx.WriteLine($"ProcDumpEx {(version is not null ? $"v{version}" : string.Empty)} - Extension to Microsoft's Sysinternal Tool ProcDump", command.LogId);
+			ConsoleEx.WriteLine($"Copyright (C) \"Alexander Peipp\" and \"Daniel Eichner\"", command.LogId);
+			ConsoleEx.WriteLine();
+
 			ConsoleEx.WriteUnderline("ProcDumpEx-Help:", command.LogId);
 			ConsoleEx.WriteLine();
 			ConsoleEx.WriteLine("ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.", command.LogId);
