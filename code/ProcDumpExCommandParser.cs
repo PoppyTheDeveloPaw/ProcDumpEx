@@ -31,7 +31,7 @@ namespace ProcDumpEx
 			{
 				processes = ExtractProcesses(tokens);
 			}
-			catch (ArgumentException e)
+			catch (Exception e) when (e is ArgumentException or ValueExpectedException or NoValueExpectedException)
 			{
 				ConsoleEx.WriteError(e.Message, "ProcDumpExCommandParser");
 				return null;
