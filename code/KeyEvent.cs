@@ -43,8 +43,6 @@ namespace ProcDumpEx
 					KeyPressedEvent?.Invoke(this, KeyPressed.Ctrl_Break);
 					break;
 			}
-
-			throw new NotImplementedException();
 		}
 
 		private void ThreadMethod()

@@ -20,33 +20,13 @@ namespace ProcDumpEx
 		[DllImport("kernel32.dll")]
 		static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
 
-		public static void WriteInfo(string infoMessage, string logId)
-		{
-			Console.ForegroundColor = ConsoleColor.Blue;
-			WriteLine(infoMessage, logId);
-			Console.ResetColor();
-		}
+		public static void WriteInfo(string infoMessage, string logId) => WriteColor(infoMessage, ConsoleColor.Blue, logId);
 
-		public static void WriteError(string errorMessage, string logId)
-		{
-			Console.ForegroundColor = ConsoleColor.Red;
-			WriteLine(errorMessage, logId);
-			Console.ResetColor();
-		}
+		public static void WriteError(string errorMessage, string logId) => WriteColor(errorMessage, ConsoleColor.Red, logId);
 
-		public static void WriteSuccess(string message, string logId)
-		{
-			Console.ForegroundColor = ConsoleColor.Green;
-			WriteLine(message, logId);
-			Console.ResetColor();
-		}
+		public static void WriteSuccess(string message, string logId) => WriteColor(message, ConsoleColor.Green, logId);
 
-		public static void WriteFailure(string message, string logId)
-		{
-			Console.ForegroundColor = ConsoleColor.DarkYellow;
-			WriteLine(message, logId);
-			Console.ResetColor();
-		}
+		public static void WriteFailure(string message, string logId) => WriteColor(message, ConsoleColor.DarkYellow, logId);
 
 		public static void WriteColor(string message, ConsoleColor color, string logId)
 		{
