@@ -1,4 +1,7 @@
-﻿The '-inf' parameter in ProcDumpEx ensures that new ProcDump instances are continuously opened until explicitly terminated. When combined with the '-n' parameter in ProcDump, this means that when the number of dump files specified with '-n' is reached, ProcDump will terminate, and ProcDumpEx will subsequently reopen ProcDump with the same parameters. However, this parameter can generate a high disk usage and its limit is determined by the overall size and speed of the system.
+﻿The '-inf' parameter in ProcDumpEx ensures that new ProcDump instances are continuously opened until explicitly terminated. 
+When combined with the '-n' parameter in ProcDump, this means that when the number of dump files specified with '-n' is reached, 
+ProcDump will terminate, and ProcDumpEx will subsequently reopen ProcDump with the same parameters. 
+However, this parameter can generate a high disk usage and its limit is determined by the overall size and speed of the system.
 
 Example:
 1.	ProcDumpEx.exe -ma -w -e -inf -pn "<process 1>.exe, <process 2>.exe“

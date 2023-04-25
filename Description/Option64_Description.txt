@@ -1,4 +1,5 @@
-﻿ProcDump internally checks whether the process to be monitored is a 32- or 64-bit application and starts procdump.exe or procdump64.exe depending on the process. With the parameter -64, this check is bypassed and the 64-bit variant is always used.
+﻿ProcDump internally checks whether the process to be monitored is a 32- or 64-bit application and starts procdump.exe or procdump64.exe depending on the process. 
+With the parameter -64, this check is bypassed and the 64-bit variant is always used.
 
 Examples:
 1.	procdumpex.exe -64 -ma -e <process 1>.exe
