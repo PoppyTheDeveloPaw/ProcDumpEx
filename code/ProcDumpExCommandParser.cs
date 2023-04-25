@@ -19,6 +19,14 @@ namespace ProcDumpEx
 
 			(List<string> ProcessNames, List<int> ProcessIds) processes;
 
+			List<OptionBase> options = new List<OptionBase>();
+
+			if (ParseAndRemoveOptionValueIfExists(typeof(OptionCfg), tokens) is { } cfgOption)
+			{
+				options.Add(cfgOption);
+				return new ProcDumpExCommand(options, null!, null!, tokens.ToString(), logId.ToString());
+			}
+
 			try
 			{
 				processes = ExtractProcesses(tokens);
@@ -28,8 +36,6 @@ namespace ProcDumpEx
 				ConsoleEx.WriteError(e.Message, "ProcDumpExCommandParser");
 				return null;
 			}
-
-			List<OptionBase> options = new List<OptionBase>();
 
 			string pnOption = typeof(OptionPn).GetOption();
 

@@ -1,0 +1,10 @@
+﻿A configuration file can also be used to run ProcDumpEx. In this file parameters for ProcDumpEx can be defined in several lines. Each line is treated like a separate ProcDumpEx process.
+
+Examples:
+1.	procdumpex.exe -cfg C:\SampleFile.txt
+
+Sample content of SampleFile.txt:
+
+-ma -w -e -inf -pn "<process 1>.exe, <process 2>.exe“
+-ma -e -pn „<PID 1>, <PID 2>“
+...

@@ -4,62 +4,57 @@ namespace ProcDumpEx.code
 {
 	internal static class ArgumentManager
 	{
-		private static string[] ManageArguments(string[] args)
-		{
-			string cfgPath = string.Empty;
-
-			for (int i = 0; i < args.Length; i++)
-			{
-				string item = args[i];
-				if (item == "-cfg")
-				{
-					if (i + 1 < args.Length)
-					{
-						cfgPath = args[i + 1];
-						break;
-					}
-					else
-					{
-						throw new ManageArgumentsException("The -cfg parameter was specified, but there is no config path");
-					}
-				}
-			}
-
-			if (!string.IsNullOrEmpty(cfgPath))
-			{
-				if (!File.Exists(cfgPath))
-					throw new ManageArgumentsException("The specified config path is invalid");
-				return File.ReadAllLines(cfgPath);
-			}
-
-			return new[] { string.Join(' ', args) };
-		}
-
 		public static ProcDumpExCommand[]? GetCommands(string[] args)
 		{
-			bool succeeded = true;
+			if (args.Length == 0)
+			{
+				ConsoleEx.WriteError($"For the execution of ProcDumpEx parameters are expected. ProcDumpEx is terminated. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager");
+				return null;
+			}
+
 			List<ProcDumpExCommand> commands = new List<ProcDumpExCommand>();
+			int idCounter = 1;
 			try
 			{
-				int idCounter = 1;
-				foreach (var argsCommandLine in ManageArguments(args))
+				if(ProcDumpExCommandParser.Parse(string.Join(' ', args), 1) is not { } command)
 				{
-					if (ProcDumpExCommandParser.Parse(argsCommandLine, idCounter++) is not { } command)
+					ConsoleEx.WriteError($"Specified parameters ({string.Join(' ', args)}) could not be parsed. ProcDumpEx is terminated. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager");
+					return null;
+				}
+				
+				if (command.OptionCfg is null)
+					return new[] { command };
+
+				foreach (var argsCommandLine in command.OptionCfg.GetArgumentsFromFile())
+				{
+					if (argsCommandLine.Length == 0)
 					{
-						ConsoleEx.WriteError($"Specified parameters ({argsCommandLine}) could not be parsed. ProcDumpEx is terminated. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager");
-						succeeded = false;
+						ConsoleEx.WriteError($"For the execution of ProcDumpEx parameters are expected. Empty line in configuration file is ignored. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager");
 						continue;
 					}
-					commands.Add(command);
+
+					if (ProcDumpExCommandParser.Parse(argsCommandLine, idCounter++) is not { } cfgCommand)
+					{
+						ConsoleEx.WriteError($"Specified parameters ({argsCommandLine}) could not be parsed and are therefore ignored. ProcDumpEx is terminated. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager");
+						continue;
+					}
+
+					if (cfgCommand.OptionCfg is not null)
+					{
+						ConsoleEx.WriteError($"The -cfg parameter could not be used in the configuration file. The parameters ({argsCommandLine}) are ignored", "ArgumentManager");
+						continue;
+					}
+
+					commands.Add(cfgCommand);
 				}
 			}
 			catch (ManageArgumentsException e)
 			{
 				ConsoleEx.WriteError(e.Message, "ArgumentManager");
-				succeeded = false;
+				return null;
 			}
 
-			return succeeded ? commands.ToArray() : null;
+			return commands.Any() ? commands.ToArray() : null;
 		}
 	}
 }

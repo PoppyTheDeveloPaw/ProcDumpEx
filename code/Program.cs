@@ -1,6 +1,8 @@
 ﻿using ProcDumpEx;
 using ProcDumpEx.code;
-using System.Drawing;
+
+if (!Helper.CheckAdministratorPrivileges())
+	return;
 
 if (Helper.IsProcdumpFileMissing("Base"))
 	return;

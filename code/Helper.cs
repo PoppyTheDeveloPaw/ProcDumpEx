@@ -1,5 +1,6 @@
 ﻿using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
+using System.Diagnostics;
 using System.Management;
 using System.Reflection;
 using System.Security.Principal;
@@ -84,6 +85,16 @@ namespace ProcDumpEx
 				return Constants.FullProcdump64aPath;
 
 			throw new ProcDumpFileMissingException(Constants.ProcDump64aFileName, Constants.FullProcdump64aFolderPath, Constants.FullProcdump64aPath);
+		}
+
+		internal static bool CheckAdministratorPrivileges()
+		{
+			if (!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
+			{
+				ConsoleEx.WriteInfo("Administrator privileges are required to run ProcDumpEx. Please restart the console as administrator.", "Helper");
+				return false;
+			}
+			return true;
 		}
 
 		internal static bool IsProcdumpFileMissing(string logId)
