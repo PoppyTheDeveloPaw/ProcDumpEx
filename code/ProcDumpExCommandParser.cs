@@ -21,9 +21,10 @@ namespace ProcDumpEx
 
 			List<OptionBase> options = new List<OptionBase>();
 
-			if (ParseAndRemoveOptionValueIfExists(typeof(OptionCfg), tokens) is { } cfgOption)
+			//If -cfg is passed as argument, the remaining parameters can be ignored
+			if (ParseAndRemoveOptionValueIfExists<OptionCfg>(tokens) is { } cfgValue)
 			{
-				options.Add(cfgOption);
+				options.Add(cfgValue);
 				return new ProcDumpExCommand(options, null!, null!, tokens.ToString(), logId.ToString());
 			}
 
@@ -38,10 +39,11 @@ namespace ProcDumpEx
 			}
 
 			string pnOption = typeof(OptionPn).GetOption();
+			string cfgOption = typeof(OptionCfg).GetOption();
 
 			foreach (var type in types)
 			{
-				if (type.GetOption() == pnOption)
+				if (type.GetOption() == pnOption || type.GetOption() == cfgOption)
 					continue;
 
 				if (ParseAndRemoveOptionValueIfExists(type, tokens) is { } option)
@@ -88,23 +90,37 @@ namespace ProcDumpEx
 
 			(bool IsOption, object Value)? nextToken = index + 1 < tokens.Count ? tokens[index + 1] : null;
 
-			if (!nextToken.HasValue || nextToken.Value.IsOption || !type.GetValueExpected())
+			try
 			{
-				if (type.GetValueExpected())
-					throw new ValueExpectedException("For the option {0} one or more values are expected", type.GetOption());
+				if (!nextToken.HasValue || nextToken.Value.IsOption || !type.GetValueExpected())
+				{
+					if (type.GetValueExpected())
+						throw new ValueExpectedException("For the option {0} one or more values are expected", type.GetOption());
 
+					tokens.RemoveAt(index);
+
+					return (OptionBase)Activator.CreateInstance(type)!;
+				}
+
+				tokens.RemoveAt(index + 1);
 				tokens.RemoveAt(index);
 
-				return (OptionBase)Activator.CreateInstance(type)!;
+				if (nextToken.Value.Value is List<string> valueList)
+					return (OptionBase)Activator.CreateInstance(type, valueList.ToArray())!;
+
+				return (OptionBase)Activator.CreateInstance(type, (string)nextToken.Value.Value)!;
 			}
-
-			tokens.RemoveAt(index + 1);
-			tokens.RemoveAt(index);
-
-			if (nextToken.Value.Value is List<string> valueList)
-				return (OptionBase)Activator.CreateInstance(type, valueList.ToArray())!;
-
-			return (OptionBase)Activator.CreateInstance(type, (string)nextToken.Value.Value)!;
+			finally
+			{
+				if (type == typeof(OptionPn))
+				{
+					//If placeholder is not actively added into the arguments by the user, placeholder will be added in place of -pn
+					if (!tokens.Any(o => o.IsOption == false && o.Value is string strValue && strValue == Constants.ProcessPlaceholder))
+					{
+						tokens.Insert(index, (false, Constants.ProcessPlaceholder));
+					}
+				}
+			}
 		}
 
 		private static TReturnValue? ParseAndRemoveOptionValueIfExists<TReturnValue>(CommandSplitList tokens) where TReturnValue : OptionBase => (TReturnValue?)ParseAndRemoveOptionValueIfExists(typeof(TReturnValue), tokens);
