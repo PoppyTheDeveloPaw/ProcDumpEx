@@ -92,7 +92,7 @@ namespace ProcDumpEx
 		{
 			if (!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
 			{
-				ConsoleEx.WriteInfo("Administrator privileges are required to run ProcDumpEx. Please restart the console as administrator.", "Helper");
+				ConsoleEx.WriteError("Administrator privileges are required to run ProcDumpEx. Please restart the console as administrator.", "Helper");
 				return false;
 			}
 			return true;

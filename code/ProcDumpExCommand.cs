@@ -9,6 +9,7 @@ namespace ProcDumpEx
 	internal class ProcDumpExCommand
 	{
 		internal List<string> ProcessNames { get; }
+		internal readonly List<int> ProcessIds;
 		internal bool Log { get; }
 
 		internal OptionCfg? OptionCfg { get; }
@@ -16,7 +17,6 @@ namespace ProcDumpEx
 		internal string LogId { get; }
 
 		private readonly string _baseProcDumpCommand;
-		private readonly List<int> _processIds;
 
 		private bool _inf;
 		private readonly bool _use64;
@@ -46,8 +46,23 @@ namespace ProcDumpEx
 
 			LogId = logId;
 			_procDumpExOptions = options;
-			_processIds = processIds;
+			ProcessIds = processIds;
 			_baseProcDumpCommand = baseProcDumpCommand;
+
+			if (!_procDumpExOptions.Any(o => o is OptionW))
+			{
+				//Since Wait (-w) is not used, we are only interested in the currently active processes with the name. So we can ignore the names at this point
+				foreach (var processName in processNames)
+				{
+					var processes = GetProcessesByName(processName);
+
+					foreach (var process in processes)
+					{
+						ProcessIds.Add(process.Id);
+					}
+				}
+				ProcessNames.Clear();
+			}
 
 			_processManager = new ProcessManager();
 
@@ -93,7 +108,7 @@ namespace ProcDumpEx
 			List<Task> tasks = new List<Task>();
 
 			//Execute for already running processes
-			foreach (var processId in _processIds)
+			foreach (var processId in ProcessIds)
 				tasks.Add(ExecuteAsync(processId));
 
 			foreach (var processName in ProcessNames)
@@ -136,16 +151,23 @@ namespace ProcDumpEx
 			return true;
 		}
 
+		private Process[] GetProcessesByName(string processName)
+		{
+			var processes = Process.GetProcessesByName(processName);
+
+			if (!processes.Any())
+				processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(processName));
+
+			return processes;
+		}
+
 		/// <summary>
 		/// Use this method only for the primary start (-pn)
 		/// </summary>
 		/// <param name="processName"></param>
 		private async Task ExecuteAsync(string processName)
 		{
-			var processes = Process.GetProcessesByName(processName);
-
-			if (!processes.Any())
-				processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(processName));
+			var processes = GetProcessesByName(processName);
 
 			if (!processes.Any())
 			{
@@ -155,8 +177,10 @@ namespace ProcDumpEx
 				if (_procDumpExOptions.Any(o => o is OptionW))
 					sb.Append(" ProcDumpEx is idle for this process name until a new process instance is started");
 				else
+				{
 					sb.Append(" The execution for this process name is terminated.");
-
+				}
+				
 				ConsoleEx.WriteInfo(sb.ToString(), LogId);
 				return;
 			}
@@ -189,6 +213,7 @@ namespace ProcDumpEx
 			catch (Exception e) when (e is (ArgumentException or InvalidOperationException or ProcessNotFoundException))
 			{
 				ConsoleEx.WriteInfo($"Currently no process is running with the id: {processId}. Execution for this process id is finished", LogId);
+				InfRemoveProcessIdentifier(processId);
 			}
 		}
 
@@ -287,6 +312,22 @@ namespace ProcDumpEx
 		{
 			if (_inf)
 				await ExecuteAsync(e.ExaminedProcessId);
+		}
+
+		private void InfRemoveProcessIdentifier(int processId)
+		{
+			//If parameter -w is used, inf will be reused at the start of the specified process
+			if (_procDumpExOptions.Any(o => o is OptionW))
+				return;
+
+			//Only used if parameter -inf is set
+			if (!_inf)
+				return;
+
+			ProcessIds.Remove(processId);
+
+			if (!ProcessIds.Any())
+				_tcs.TrySetResult();
 		}
 	}
 
