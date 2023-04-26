@@ -177,5 +177,30 @@ namespace ProcDumpEx
 
 			return true;
 		}
+
+		internal static void FixArgs(string[] args)
+		{
+			for (int i = 0; i < args.Length; i++)
+			{
+				if (args[i].Contains(','))
+				{
+					if (!args[i].StartsWith('"'))
+						args[i] = $"\"{args[i]}";
+					if (!args[i].EndsWith('"'))
+						args[i] = $"{args[i]}\"";
+				}
+			}
+
+			for (int i = 0; i < args.Length; i++)
+			{
+				if (args[i].Contains(' '))
+				{
+					if (!args[i].StartsWith('"'))
+						args[i] = $"\"{args[i]}";
+					if (!args[i].EndsWith('"'))
+						args[i] = $"{args[i]}\"";
+				}
+			}
+		}
 	}
 }

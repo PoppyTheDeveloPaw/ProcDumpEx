@@ -9,16 +9,7 @@ if (!Helper.CheckEula())
 if (Helper.IsProcdumpFileMissing("Base"))
 	return;
 
-for (int i = 0; i < args.Length; i++)
-{
-	if (args[i].Contains(','))
-	{
-		if (!args[i].StartsWith('"'))
-			args[i] = $"\"{args[i]}";
-		if (!args[i].EndsWith('"'))
-			args[i] = $"{args[i]}\"";
-	}
-}
+Helper.FixArgs(args);
 
 if (ArgumentManager.GetCommands(args) is not { } commandList)
 	return;
