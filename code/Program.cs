@@ -20,17 +20,24 @@ AppDomain.CurrentDomain.ProcessExit += (sender, e) => ProcessExitEvent(commandLi
 bool manuallyExit = false;
 string text = string.Empty;
 
-List<Task> awaitCommands = new List<Task>();
-foreach (var command in commandList)
+if (commandList.Any(o => o.ProcessNames.Any() || o.ProcessIds.Any()))
 {
-	awaitCommands.Add(command.RunAsync());
-}
-await Task.WhenAll(awaitCommands);
+	List<Task> awaitCommands = new List<Task>();
+	foreach (var command in commandList)
+	{
+		awaitCommands.Add(command.RunAsync());
+	}
+	await Task.WhenAll(awaitCommands);
 
-if (manuallyExit)
-	ConsoleEx.WriteColor(text, ConsoleColor.DarkMagenta, "Base");
+	if (manuallyExit)
+		ConsoleEx.WriteColor(text, ConsoleColor.DarkMagenta, "Base");
+	else
+		ConsoleEx.WriteColor("ProcDumpEx was terminated after everything was done", ConsoleColor.DarkMagenta, "Base");
+}
 else
-	ConsoleEx.WriteColor("ProcDumpEx was terminated after everything was done", ConsoleColor.DarkMagenta, "Base");
+{
+	ConsoleEx.WriteError("With the specified parameters, neither is waiting for a process to become active, nor is a process to be monitored active. ProcDumpEx is aborted", "Base");
+}
 
 if (commandList.Any(o => o.Log))
 	ConsoleEx.WriteLogFile("Base");
