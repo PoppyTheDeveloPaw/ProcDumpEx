@@ -18,7 +18,7 @@ namespace ProcDumpEx.Options
 			Version? version = Assembly.GetExecutingAssembly().GetName().Version;
 
 			ConsoleEx.WriteLine($"ProcDumpEx {(version is not null ? $"v{version}" : string.Empty)} - Extension to Microsoft's Sysinternal Tool ProcDump", command.LogId);
-			ConsoleEx.WriteLine($"Copyright (C) \"Alexander Peipp\" and \"Daniel Eichner\"", command.LogId);
+			ConsoleEx.WriteLine($"Copyright (C) Alexander Peipp and Daniel Eichner", command.LogId);
 			ConsoleEx.WriteLine();
 
 			ConsoleEx.WriteUnderline("ProcDumpEx-Help:", command.LogId);
