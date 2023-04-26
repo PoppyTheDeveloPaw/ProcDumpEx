@@ -49,21 +49,6 @@ namespace ProcDumpEx
 			ProcessIds = processIds;
 			_baseProcDumpCommand = baseProcDumpCommand;
 
-			if (!_procDumpExOptions.Any(o => o is OptionW))
-			{
-				//Since Wait (-w) is not used, we are only interested in the currently active processes with the name. So we can ignore the names at this point
-				foreach (var processName in processNames)
-				{
-					var processes = GetProcessesByName(processName);
-
-					foreach (var process in processes)
-					{
-						ProcessIds.Add(process.Id);
-					}
-				}
-				ProcessNames.Clear();
-			}
-
 			_processManager = new ProcessManager();
 
 			Log = _procDumpExOptions.Any(o => o is OptionLog);
@@ -83,6 +68,21 @@ namespace ProcDumpEx
 				_procDumpExOptions.RemoveAll(o => o is OptionShowOutput);
 
 			OptionCfg =	_procDumpExOptions.FirstOrDefault(o => o is OptionCfg) as OptionCfg;
+
+			if (!_procDumpExOptions.Any(o => o is OptionW) && OptionCfg is null)
+			{
+				//Since Wait (-w) is not used, we are only interested in the currently active processes with the name. So we can ignore the names at this point
+				foreach (var processName in processNames)
+				{
+					var processes = GetProcessesByName(processName);
+
+					foreach (var process in processes)
+					{
+						ProcessIds.Add(process.Id);
+					}
+				}
+				ProcessNames.Clear();
+			}
 
 			if (_inf)
 				_processManager.ProcDumpProcessTerminated += async (_, e) => await ProcessManager_ProcDumpProcessTerminatedAsync(e);
