@@ -28,11 +28,23 @@ namespace ProcDumpEx
 
 		public static void WriteFailure(string message, string logId) => WriteColor(message, ConsoleColor.DarkYellow, logId);
 
+
+
+		private static object _colorLock = new object();
+		public static void WriteColor(string message, ConsoleColor color)
+		{
+			lock (_colorLock)
+			{
+				Console.ForegroundColor = color;
+				WriteLine(message);
+				Console.ResetColor();
+			}
+		}
+
 		public static void WriteColor(string message, ConsoleColor color, string logId)
 		{
-			Console.ForegroundColor = color;
-			WriteLine(message, logId);
-			Console.ResetColor();
+			string outputMessage = $"{GetIdTime(logId)}{message}";
+			WriteColor(outputMessage, color);
 		}
 
 		public static void Write(string message, string logId)
@@ -47,6 +59,12 @@ namespace ProcDumpEx
 			string outputMessage = $"{GetIdTime(logId)}{message}";
 			_log.Add(outputMessage);
 			Console.WriteLine(outputMessage);
+		}
+
+		public static void WriteLine(string message)
+		{
+			_log.Add(message);
+			Console.WriteLine(message);
 		}
 
 		public static void WriteLine()
@@ -102,7 +120,6 @@ namespace ProcDumpEx
 		{
 			lock (_lockObject)
 			{
-				Console.ForegroundColor = ConsoleColor.Cyan;
 				var handle = GetStdHandle(STD_OUTPUT_HANDLE);
 				uint mode;
 				GetConsoleMode(handle, out mode);
@@ -125,8 +142,7 @@ namespace ProcDumpEx
 				if (onlyLog)
 					return;
 
-				Console.WriteLine(sb.ToString());
-				Console.ResetColor();
+				WriteColor(sb.ToString(), ConsoleColor.Cyan);
 			}
 		}
 	}

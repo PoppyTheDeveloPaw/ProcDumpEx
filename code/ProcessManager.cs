@@ -11,6 +11,8 @@ namespace ProcDumpEx
 
 		internal event EventHandler<ProcDumpInfo>? ProcDumpProcessTerminated;
 
+		internal event EventHandler? MonitoringListEmpty;
+
 		public ProcessManager()
 		{
 			_currentMonitoredProcesses = new Dictionary<ProcdumpProcessIdentifier, Process>();
@@ -43,6 +45,10 @@ namespace ProcDumpEx
 					ConsoleEx.WriteInfo("Currently all active ProcDump processes have been terminated. ProcDumpEx is idle until new processes are started.", logId);
 
 				ProcDumpProcessTerminated?.Invoke(this, info);
+
+				if (!_currentMonitoredProcesses.Any())
+					MonitoringListEmpty?.Invoke(this, EventArgs.Empty);
+
 				return value;
 			}
 		}
@@ -54,7 +60,7 @@ namespace ProcDumpEx
 			{
 				itemPair.Value.Kill();
 			}
-			_currentMonitoredProcesses.Clear();
+			//_currentMonitoredProcesses.Clear();
 		}
 	}
 

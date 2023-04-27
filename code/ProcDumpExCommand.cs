@@ -21,6 +21,7 @@ namespace ProcDumpEx
 		private bool _inf;
 		private readonly bool _use64;
 		private readonly bool _showoutput;
+		private bool _stopCalled = false;
 
 		private readonly List<OptionBase> _procDumpExOptions;
 
@@ -50,6 +51,8 @@ namespace ProcDumpEx
 			_baseProcDumpCommand = baseProcDumpCommand;
 
 			_processManager = new ProcessManager();
+
+			_processManager.MonitoringListEmpty += ProcessManager_MonitoringListEmpty;
 
 			Log = _procDumpExOptions.Any(o => o is OptionLog);
 			if (Log)
@@ -129,7 +132,14 @@ namespace ProcDumpEx
 			_procDumpExOptions.FirstOrDefault(o => o is OptionW)?.StopExecution();
 			_processManager.KillAll();
 
-			_tcs.TrySetResult();
+			_stopCalled = true;
+			//_tcs.TrySetResult();
+		}
+
+		private void ProcessManager_MonitoringListEmpty(object? sender, EventArgs e)
+		{
+			if (_stopCalled)
+				_tcs.TrySetResult();
 		}
 
 		internal void AddProcDumpCommand(string command)
