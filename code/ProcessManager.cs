@@ -53,14 +53,20 @@ namespace ProcDumpEx
 			}
 		}
 
-		public void KillAll()
+		public bool KillAll()
 		{
 			_killAllCalled = true;
-			foreach (var itemPair in _currentMonitoredProcesses)
+
+			if (_currentMonitoredProcesses.Any())
 			{
-				itemPair.Value.Kill();
+				foreach (var itemPair in _currentMonitoredProcesses)
+				{
+					itemPair.Value.Kill();
+				}
+				return false;
 			}
-			//_currentMonitoredProcesses.Clear();
+
+			return true;
 		}
 	}
 

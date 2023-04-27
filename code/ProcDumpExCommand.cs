@@ -128,12 +128,15 @@ namespace ProcDumpEx
 			if (_tcs.Task.IsCompleted)
 				return;
 
+			_stopCalled = true;
 			_inf = false;
 			_procDumpExOptions.FirstOrDefault(o => o is OptionW)?.StopExecution();
-			_processManager.KillAll();
 
-			_stopCalled = true;
-			//_tcs.TrySetResult();
+			if (_processManager.KillAll())
+			{
+				//If no process is currently monitored, the program can be terminated directly
+				_tcs.TrySetResult();
+			}
 		}
 
 		private void ProcessManager_MonitoringListEmpty(object? sender, EventArgs e)
