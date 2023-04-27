@@ -20,7 +20,20 @@ namespace ProcDumpEx.Options
 			{
 				if (!File.Exists(FilePath))
 					throw new ManageArgumentsException("The specified config path is invalid");
-				return File.ReadAllLines(FilePath);
+
+				var lines = File.ReadAllLines(FilePath);
+
+				string toRemoveAtStart = "procdumpex.exe ";
+
+				for (int i = 0; i < lines.Length; i++)
+				{
+					if (lines[i].StartsWith(toRemoveAtStart, StringComparison.OrdinalIgnoreCase))
+					{
+						lines[i] = lines[i].Substring(toRemoveAtStart.Length);
+					}
+				}
+
+				return lines;
 			}
 			return new string[0];
 		}
