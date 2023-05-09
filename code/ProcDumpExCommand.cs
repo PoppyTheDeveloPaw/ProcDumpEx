@@ -11,6 +11,7 @@ namespace ProcDumpEx
 		internal List<string> ProcessNames { get; }
 		internal readonly List<int> ProcessIds;
 		internal bool Log { get; }
+		internal bool Help { get; }
 
 		internal OptionCfg? OptionCfg { get; }
 
@@ -54,6 +55,8 @@ namespace ProcDumpEx
 
 			_processManager.MonitoringListEmpty += ProcessManager_MonitoringListEmpty;
 
+			Help = _procDumpExOptions.Any(o => o is OptionHelp);
+
 			Log = _procDumpExOptions.Any(o => o is OptionLog);
 			if (Log)
 				_procDumpExOptions.RemoveAll(o => o is OptionLog);
@@ -93,9 +96,6 @@ namespace ProcDumpEx
 
 		internal async Task RunAsync()
 		{
-			if (await HelpAsync())
-				return;
-
 			foreach (var creator in _procDumpExOptions.Where(o => o.IsCommandCreator))
 				await creator.ExecuteAsync(this);
 

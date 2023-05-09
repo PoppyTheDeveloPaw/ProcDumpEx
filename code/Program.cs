@@ -1,4 +1,5 @@
 ﻿using ProcDumpEx;
+using ProcDumpEx.Options;
 
 if (!Helper.CheckAdministratorPrivileges())
 	return;
@@ -19,6 +20,12 @@ AppDomain.CurrentDomain.ProcessExit += (sender, e) => ProcessExitEvent(commandLi
 
 bool manuallyExit = false;
 string text = string.Empty;
+
+if (commandList.Any(o => o.Help))
+{
+	await OptionHelp.WriteHelp("Base");
+	return;
+}
 
 if (commandList.Any(o => o.ProcessNames.Any() || o.ProcessIds.Any()))
 {

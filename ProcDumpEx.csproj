@@ -7,8 +7,8 @@
 		<Nullable>enable</Nullable>
 		<RunPostBuildEvent>Always</RunPostBuildEvent>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
-		<AssemblyVersion>1.2.0.2</AssemblyVersion>
-		<InformationalVersion>1.2.0.2-Beta</InformationalVersion>
+		<AssemblyVersion>1.2.0.3</AssemblyVersion>
+		<InformationalVersion>1.2.0.3-Beta</InformationalVersion>
 		<Authors>Alexander Peipp;Daniel Eichner</Authors>
 		<Copyright>Alexander Peipp;Daniel Eichner</Copyright>
 	</PropertyGroup>
