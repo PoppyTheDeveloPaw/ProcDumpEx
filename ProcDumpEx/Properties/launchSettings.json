@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ProcDumpEx": {
+      "commandName": "Project",
+      "commandLineArgs": "-cfg \"C:\\Users\\alexa\\Downloads\\Neuer Ordner (2)\\bla.cfg\""
+    }
+  }
+}
