@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "ProcDumpEx": {
-      "commandName": "Project",
-      "commandLineArgs": "-log -ma -inf notepad.exe"
-    }
-  }
-}
