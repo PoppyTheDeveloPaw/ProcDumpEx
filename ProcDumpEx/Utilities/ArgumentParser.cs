@@ -1,7 +1,5 @@
 ﻿using ProcDumpEx.Commands;
 using ProcDumpEx.Exceptions;
-using System.Diagnostics;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ProcDumpEx.Utilities;
@@ -208,41 +206,11 @@ internal class ArgumentParser
 				continue;
 			}
 
-			bool parsingFailed = false;
-			try
+			if (argument.TryParse(out ICommand? command))
 			{
-				if (argument.Arguments is null || !argument.Arguments.Any())
-				{
-					var obj = CommandDict.CommandTypes.CreateObject(argument.Command);
-					if (obj is null)
-					{
-						parsingFailed = true;
-					}
-					else
-					{
-						commands.Add(obj);
-					}
-				}
-				else
-				{
-					var obj = CommandDict.CommandTypes.CreateObject(argument.Command, argument.Arguments.ToArray());
-					if (obj is null)
-					{
-						parsingFailed = true;
-					}
-					else
-					{
-						commands.Add(obj);
-					}
-				}
+				commands.Add(command);
 			}
-			catch (MissingMethodException)
-			{
-				parsingFailed = true;
-
-			}
-
-			if (parsingFailed)
+			else
 			{
 				if (argument.Arguments is null || !argument.Arguments.Any())
 				{
@@ -286,27 +254,7 @@ internal class ArgumentParser
 	/// <returns>A tuple containing lists of process names and process IDs.</returns>
 	private (IReadOnlyList<string> ProcessNames, IReadOnlyList<int> ProcessIds) ExtractProcesses(List<ICommand> commands, List<Argument> arguments, bool argumentsFromCfgFile)
 	{
-		var commandPn = commands.FirstOrDefault(o => o is CommandPn) as CommandPn;
-		commands.RemoveAll(o => o is CommandPn);
-
-		IReadOnlyList<string>? lastArgProcesses = null;
-		if (arguments.Last().Command == string.Empty)
-		{
-			lastArgProcesses = arguments.Last().Arguments;
-			arguments.RemoveAt(arguments.Count - 1);
-		}
-
-		List<string> processes = new List<string>();
-
-		if (commandPn is not null)
-		{
-			processes.AddRange(commandPn.Processes);
-		}
-
-		if (lastArgProcesses is not null)
-		{
-			processes.AddRange(lastArgProcesses);
-		}
+		List<string> processes = [.. GetProcessesFromPnCommand(commands), .. GetProcessesFromLastArgument(arguments)];
 
 		if (!processes.Any())
 		{
@@ -322,6 +270,32 @@ internal class ArgumentParser
 			throw new ParseException();
 		}
 
+		return SplitProcessesIntoNameAndId(processes, argumentsFromCfgFile);
+	}
+
+	private IEnumerable<string> GetProcessesFromLastArgument(List<Argument> arguments)
+	{
+		IEnumerable<string>? lastArgProcesses = new List<string>();
+		if (arguments.Last().Command == string.Empty)
+		{
+			lastArgProcesses = arguments.Last().Arguments ?? new List<string>();
+			arguments.RemoveAt(arguments.Count - 1);
+		}
+		return lastArgProcesses;
+	}
+
+	private IEnumerable<string> GetProcessesFromPnCommand(List<ICommand> commands)
+	{
+		if (commands.FirstOrDefault(o => o is CommandPn) is not CommandPn pn)
+		{
+			return new List<string>();
+		}
+		commands.RemoveAll(o => o is CommandPn);
+		return pn.Processes;
+	}
+
+	private (IReadOnlyList<string> ProcessNames, IReadOnlyList<int> ProcessIds) SplitProcessesIntoNameAndId(List<string> processes, bool argumentsFromCfgFile)
+	{
 		List<string> processNames = new();
 		List<int> processIds = new();
 

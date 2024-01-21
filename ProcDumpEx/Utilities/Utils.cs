@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using ProcDumpEx.Commands;
 using ProcDumpEx.Exceptions;
 using System.Security.Principal;
 

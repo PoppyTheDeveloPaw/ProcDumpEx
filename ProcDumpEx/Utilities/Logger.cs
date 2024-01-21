@@ -79,8 +79,8 @@ internal static class Logger
 	/// <param name="logType">Type of the log message.</param>
 	public static void AddOutput(string message, string logId = "", LogType logType = LogType.Default)
 	{
-        lock (_logLock)
-        {
+		lock (_logLock)
+		{
 			string time = GetTimeNow();
 			AddToLogList(message, logId, time, logType);
 			WriteConsoleOutput(message, logId, time, logType);
@@ -98,8 +98,8 @@ internal static class Logger
 		StringBuilder sb = new StringBuilder();
 		sb.AppendLine(message);
 		if (!(message.EndsWith('.') || message.EndsWith('?') || message.EndsWith('!')))
-		{ 
-			sb.Append('.'); 
+		{
+			sb.Append('.');
 		}
 		sb.AppendLine("Exception: ");
 		sb.Append(exception);
