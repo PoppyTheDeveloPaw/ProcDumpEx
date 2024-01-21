@@ -1,4 +1,5 @@
 ﻿using ProcDumpEx.Utilities;
+using System.Collections;
 
 namespace ProcDumpEx.Commands;
 

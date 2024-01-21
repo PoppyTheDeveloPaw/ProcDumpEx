@@ -8,5 +8,6 @@ internal enum LogType
 	Success,
 	Failure,
 	LogFileSaved,
-	Exit
+	Exit,
+	ProcdumpOutput
 }

@@ -1,4 +1,6 @@
-﻿namespace ProcDumpEx.Commands;
+﻿using ProcDumpEx.Utilities;
+
+namespace ProcDumpEx.Commands;
 
 /// <summary>
 /// <inheritdoc cref="ICommand" />
@@ -17,7 +19,7 @@ internal class Command64 : ICommand
 	public string GetCommandName() => CommandName;
 
 	/// <inheritdoc />
-	public bool Validate() => true;
+	public bool Validate(LineInfo? lineInfo) => true;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Command64"/> class

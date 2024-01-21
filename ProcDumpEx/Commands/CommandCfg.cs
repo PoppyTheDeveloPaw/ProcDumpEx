@@ -37,20 +37,20 @@ internal class CommandCfg : ICommand
 	/// Gets the arguments from the configuration file(s).
 	/// </summary>
 	/// <returns>A list of lists, where each inner list represents the arguments for a ProcDumpEx command.</returns>
-	internal List<List<string>> GetCfgFileArguments()
+	internal List<(LineInfo LineInfo, List<string> Args)> GetCfgFileArguments()
 	{
-		List<string> linesAllFiles = GetAllLines();
+		var linesAllFiles = GetAllLines();
 
-		var fileArguments = new List<List<string>>();
+		var fileArguments = new List<(LineInfo LineInfo, List<string> Args)>();
 
-		foreach (var args in linesAllFiles.Distinct().Select(SplitToArguments))
+		foreach (var args in linesAllFiles.Distinct().Select(o => (o.LineInfo, SplitToArguments(o.LineContent))))
 		{
-			if (args is null)
+			if (args.Item2 is null)
 			{
 				// Could not be splitted correctly to arguments.
 				continue;
 			}
-			fileArguments.Add(args);
+			fileArguments.Add((args.LineInfo, args.Item2));
 		}
 
 		return fileArguments;
@@ -61,9 +61,9 @@ internal class CommandCfg : ICommand
 	/// </summary>
 	/// <param name="log">Defines if an log entry for invalid paths should be added.</param>
 	/// <returns>A list of processed lines from the configuration file(s).</returns>
-	internal List<string> GetAllLines(bool log = true)
+	internal List<(LineInfo LineInfo, string LineContent)> GetAllLines(bool log = true)
 	{
-		List<string> linesAllFiles = new List<string>();
+		List<(LineInfo LineInfo, string LineContent)> linesOfAllFiles = new();
 
 		foreach (string path in _cfgPaths)
 		{
@@ -73,12 +73,19 @@ internal class CommandCfg : ICommand
 				continue;
 			}
 
-			var lines = File.ReadAllLines(path).Select(str => Utils.TrimStart(str, "procdumpex.exe ", true));
+			var lines = File.ReadAllLines(path).Select(str => Utils.TrimStart(str, "procdumpex.exe ", true)).ToList();
 
-			linesAllFiles.AddRange(lines.Where(o => !string.IsNullOrWhiteSpace(o)));
+			for (int i = 0; i < lines.Count(); i++)
+			{
+				if (string.IsNullOrWhiteSpace(lines[i]))
+				{
+					continue;
+				}
+				linesOfAllFiles.Add((new LineInfo(path, i + 1), lines[i]));
+			}
 		}
 
-		return linesAllFiles;
+		return linesOfAllFiles;
 	}
 
 	/// <summary>
@@ -145,11 +152,17 @@ internal class CommandCfg : ICommand
 	}
 
 	/// <inheritdoc />
-	public bool Validate()
+	public bool Validate(LineInfo? lineInfo)
 	{
+		if (lineInfo is not null)
+		{
+			Logger.AddOutput($"{lineInfo}: It is not possible to refer to another cfg file within the cfg file.", logType: LogType.Error);
+			return false;
+		}
+
 		if (!GetAllLines(false).Any())
 		{
-			Logger.AddOutput("-cfg: No lines were found that can be processed for ProcDumpEx.", logType: LogType.Error);
+			Logger.AddOutput($"If the {CommandName} parameter is used, at least one configuration file path is expected as a parameter.", logType: LogType.Error);
 			return false;
 		}
 		return true;

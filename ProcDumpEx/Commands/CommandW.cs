@@ -1,4 +1,7 @@
-﻿namespace ProcDumpEx.Commands;
+﻿
+using ProcDumpEx.Utilities;
+
+namespace ProcDumpEx.Commands;
 
 /// <summary>
 /// <inheritdoc cref="IActionCommand" />
@@ -25,7 +28,19 @@ internal class CommandW : IActionCommand
 	}
 
 	/// <inheritdoc />
-	public bool Validate() => true;
+	public bool Validate(LineInfo? lineInfo) => true;
+
+	/// <inheritdoc />
+	public async Task RunAsync(Executor executor)
+	{
+		throw new NotImplementedException();
+	}
+
+	/// <inheritdoc />
+	public async Task StopAsync()
+	{
+		throw new NotImplementedException();
+	}
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="CommandW"/> class

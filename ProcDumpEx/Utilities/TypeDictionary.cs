@@ -1,4 +1,6 @@
-﻿namespace ProcDumpEx.Utilities;
+﻿using System.Collections;
+
+namespace ProcDumpEx.Utilities;
 
 internal class TypeDictionary<T>
 {
@@ -35,4 +37,6 @@ internal class TypeDictionary<T>
 	internal T? CreateObject(string key) => (T?)Activator.CreateInstance(GetType(key));
 
 	internal T? CreateObject(string key, string[] paramArray) => (T?)Activator.CreateInstance(GetType(key), paramArray);
+
+	internal IEnumerable<string> GetAllCommandNames() => _internalDictionary.Keys;
 }

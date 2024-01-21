@@ -26,6 +26,16 @@ internal static class Logger
 	private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
 
 	/// <summary>
+	/// Value to start an underlined string in console.
+	/// </summary>
+	private const string StartUnderline = "\x1B[4m";
+
+	/// <summary>
+	/// Value to end an underlined string in console.
+	/// </summary>
+	private const string EndUnderline = "\x1B[24m";
+
+	/// <summary>
 	/// Retrieves a handle to the specified standard device (standard input, standard output, or standard error).
 	/// </summary>
 	/// <param name="nStdHandle">The standard device. This parameter can be one of the following values.</param>
@@ -75,15 +85,56 @@ internal static class Logger
 	/// Adds the given log message to the log (console and log array).
 	/// </summary>
 	/// <param name="message">Message to log.</param>
-	/// <param name="logId">Identifier of the source which logged the message.</param>
 	/// <param name="logType">Type of the log message.</param>
-	public static void AddOutput(string message, string logId = "", LogType logType = LogType.Default)
+	/// <param name="executionId">Id to keep the output of several executors apart</param>
+	/// <param name="deactivateConsoleLogging">Parameter with which the output on the console can be deactivated. Is false by default.</param>
+	public static void AddOutput(string message, LogType logType = LogType.Default, string executionId = "", bool deactivateConsoleLogging = false)
 	{
 		lock (_logLock)
 		{
 			string time = GetTimeNow();
-			AddToLogList(message, logId, time, logType);
-			WriteConsoleOutput(message, logId, time, logType);
+			AddToLogList(message, time, logType, executionId);
+			if (!deactivateConsoleLogging)
+			{
+				WriteConsoleOutput(message, time, logType, executionId);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Adds an empty line to the log.
+	/// </summary>
+	public static void AddEmptyLine()
+	{
+		lock (_logLock)
+		{
+			_log.Add(string.Empty);
+			Console.WriteLine();
+		}
+	}
+
+	/// <summary>
+	/// Adds an underlined line to the log.
+	/// </summary>
+	/// <param name="message">Message to log.</param>
+	/// <param name="logType">Type of the log message.</param>
+	/// <param name="executionId">Id to keep the output of several executors apart</param>
+	/// <param name="deactivateConsoleLogging">Parameter with which the output on the console can be deactivated. Is false by default.</param>
+	public static void AddUnderlinedOutput(string message, LogType logType = LogType.Default, string executionId = "", bool deactivateConsoleLogging = false)
+	{
+		lock (_logLock)
+		{
+			string time = GetTimeNow();
+			var handle = GetStdHandle(STD_OUTPUT_HANDLE);
+			uint mode;
+			GetConsoleMode(handle, out mode);
+			mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+			SetConsoleMode(handle, mode);
+			AddToLogList(message, time, logType);
+			if (!deactivateConsoleLogging)
+			{
+				WriteConsoleOutput($"{StartUnderline}{message}{EndUnderline}", time, logType);
+			}
 		}
 	}
 
@@ -92,8 +143,8 @@ internal static class Logger
 	/// </summary>
 	/// <param name="message">Description message of the exception.</param>
 	/// <param name="exception">Exception which is to be logged.</param>
-	/// <param name="logId">Identifier of the source which logged the message.</param>
-	public static void AddException(string message, Exception exception, string logId = "")
+	/// <param name="executionId">Id to keep the output of several executors apart</param>
+	public static void AddException(string message, Exception exception, string executionId = "")
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.AppendLine(message);
@@ -103,17 +154,16 @@ internal static class Logger
 		}
 		sb.AppendLine("Exception: ");
 		sb.Append(exception);
-		AddOutput(sb.ToString(), logId, LogType.Error);
+		AddOutput(sb.ToString(), LogType.Error, executionId);
 	}
 
 	/// <summary>
 	/// Writes the message to the console.
 	/// </summary>
 	/// <param name="message">Message to be logged.</param>
-	/// <param name="logId">Identifier of the source which logged the message.</param>
 	/// <param name="time">Timestamp of the log message.</param>
 	/// <param name="logType">Type of the log message.</param>
-	private static void WriteConsoleOutput(string message, string logId, string time, LogType logType)
+	private static void WriteConsoleOutput(string message, string time, LogType logType, string executionId = "")
 	{
 		try
 		{
@@ -123,7 +173,7 @@ internal static class Logger
 			}
 
 			StringBuilder sb = new StringBuilder();
-			sb.AppendPreParameter(logId);
+			sb.AppendPreParameter(executionId);
 			sb.AppendPreParameter(time);
 			sb.Append(": ");
 			sb.Append(message);
@@ -139,18 +189,14 @@ internal static class Logger
 	/// Adds the log entry to the log list.
 	/// </summary>
 	/// <param name="message">Message to be logged.</param>
-	/// <param name="logId">Identifier of the source which logged the message.</param>
 	/// <param name="time">Timestamp of the log message.</param>
 	/// <param name="logType">Type of the log message.</param>
-	private static void AddToLogList(string message, string logId, string time, LogType logType)
+	private static void AddToLogList(string message, string time, LogType logType, string executionId = "")
 	{
 		StringBuilder sb = new StringBuilder();
-		if (string.IsNullOrEmpty(logId))
-		{
-			sb.AppendPreParameter(logId);
-		}
+		sb.AppendPreParameter(executionId);
 		sb.AppendPreParameter(Enum.GetName(typeof(LogType), logType) ?? "");
-		sb.AppendPreParameter(GetTimeNow());
+		sb.AppendPreParameter(time);
 		sb.Append(": ");
 		sb.Append(message);
 		_log.Add(sb.ToString());
@@ -180,17 +226,48 @@ internal static class Logger
 		LogType.Success => ConsoleColor.Green,
 		LogType.Failure => ConsoleColor.DarkYellow,
 		LogType.LogFileSaved or LogType.Exit => ConsoleColor.DarkMagenta,
+		LogType.ProcdumpOutput => ConsoleColor.Cyan,
 		_ => ConsoleColor.White
 	};
 
-	public static void WriteLogFile(string logId = "")
+	public static void WriteLogFile()
 	{
 		string fileName = $"Log_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.txt";
 		File.WriteAllLines(fileName, _log);
-		AddOutput($"Log file saved with the name {fileName}", logId, LogType.LogFileSaved);
+		AddOutput($"Log file saved with the name {fileName}", LogType.LogFileSaved);
 	}
 
 	private static string GetTimeNow() => DateTime.Now.ToString("G", CultureInfo.GetCultureInfo("de-DE"));
+
+	public static void AddProcdumpOutput(ProcDumpInfo info, string[] output, string executionId, bool deactivateConsoleLogging = false)
+	{
+		lock (_logLock)
+		{
+			string timestamp = GetTimeNow();
+
+			var handle = GetStdHandle(STD_OUTPUT_HANDLE);
+			uint mode;
+			GetConsoleMode(handle, out mode);
+			mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+			SetConsoleMode(handle, mode);
+
+			string firstLine = $"Output of {info.UsedProcDumpFileName} / Process logId: {info.ProcDumpProcessId}. Examined Process: {info.ExaminedProcessName}";
+			AddToLogList(firstLine, timestamp, LogType.ProcdumpOutput, executionId);
+			if (!deactivateConsoleLogging)
+			{
+				WriteConsoleOutput($"{StartUnderline}{firstLine}{EndUnderline}", timestamp, LogType.ProcdumpOutput, executionId);
+			}
+
+			foreach (var line in output)
+			{
+				AddToLogList(line, timestamp, LogType.ProcdumpOutput, executionId);
+				if (!deactivateConsoleLogging)
+				{
+					WriteConsoleOutput(line, timestamp, LogType.ProcdumpOutput, executionId);
+				}
+			}
+		}
+	}
 
 	//private static object _lockObject = new object();
 	//public static void PrintOutput(ProcDumpInfo info, string[] output, string logId, bool onlyLog = false)

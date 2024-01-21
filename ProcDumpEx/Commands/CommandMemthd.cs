@@ -1,4 +1,7 @@
-﻿namespace ProcDumpEx.Commands;
+﻿
+using ProcDumpEx.Utilities;
+
+namespace ProcDumpEx.Commands;
 
 /// <summary>
 /// <inheritdoc cref="IActionCommand" />
@@ -19,16 +22,22 @@ internal class CommandMemthd : IActionCommand
 	public string GetCommandName() => CommandName;
 
 	/// <inheritdoc />
-	public void Run()
+	public bool Validate(LineInfo? lineInfo)
+	{
+		return true;
+		//TODO
+		throw new NotImplementedException();
+	}
+
+	/// <inheritdoc />
+	public async Task RunAsync(Executor executor)
 	{
 		throw new NotImplementedException();
 	}
 
 	/// <inheritdoc />
-	public bool Validate()
+	public async Task StopAsync()
 	{
-		return true;
-		//TODO
 		throw new NotImplementedException();
 	}
 

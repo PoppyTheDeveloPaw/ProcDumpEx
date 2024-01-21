@@ -1,4 +1,5 @@
 ﻿using ProcDumpEx.Utilities;
+using System.Text;
 
 namespace ProcDumpEx.Commands;
 
@@ -25,11 +26,18 @@ internal class CommandPn : ICommand
 	public string GetCommandName() => CommandName;
 
 	/// <inheritdoc />
-	public bool Validate()
+	public bool Validate(LineInfo? lineInfo)
 	{
+		StringBuilder sb = new StringBuilder();
+		if (lineInfo is not null)
+		{
+			sb.Append($"{lineInfo}: ");
+		}
+
 		if (!Processes.Any())
 		{
-			Logger.AddOutput("-pn: The -pn command expects at least one parameter", logType: LogType.Error);
+			sb.Append("The -pn command expects at least one process id or process name.");
+			Logger.AddOutput(sb.ToString(), logType: LogType.Error);
 			return false;
 		}
 		return true;

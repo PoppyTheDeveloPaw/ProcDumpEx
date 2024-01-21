@@ -1,8 +1,9 @@
 ﻿using ProcDumpEx.Commands;
+using ProcDumpEx.Utilities;
 
 namespace ProcDumpEx;
 
-internal class ParseResult
+internal class ProcDumpExCommand
 {
 	/// <summary>
 	/// Arguments that are used when executing ProcDump
@@ -14,10 +15,9 @@ internal class ParseResult
 	/// </summary>
 	internal readonly IReadOnlyList<ICommand> Commands;
 
-
 	internal readonly (IReadOnlyList<string> ProcessNames, IReadOnlyList<int> ProcessIds) Processes;
 
-	public ParseResult(IReadOnlyList<ICommand> commands, (IReadOnlyList<string>, IReadOnlyList<int>) processes, string baseProcdumpCommand)
+	public ProcDumpExCommand(IReadOnlyList<ICommand> commands, (IReadOnlyList<string>, IReadOnlyList<int>) processes, string baseProcdumpCommand)
 	{
 		Commands = commands;
 		Processes = processes;

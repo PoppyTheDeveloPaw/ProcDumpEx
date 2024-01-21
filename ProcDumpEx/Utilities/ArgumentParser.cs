@@ -9,12 +9,29 @@ internal class ArgumentParser
 	private string[] _arguments;
 
 	/// <summary>
+	/// Info about the source of the arguments, if they were loaded from a file
+	/// </summary>
+	private LineInfo? _lineInfo;
+
+	/// <summary>
 	/// Creates an instance of <see cref="ArgumentParser"/>
 	/// </summary>
 	/// <param name="args">Arguments that were specified when the program was started.</param>
 	public ArgumentParser(string[] args)
 	{
-		_arguments = args.ToArray();
+		_arguments = args;
+		FixArguments();
+	}
+
+	/// <summary>
+	/// Creates an instance of <see cref="ArgumentParser"/>
+	/// </summary>
+	/// <param name="lineInfo">File and line info.</param>
+	/// <param name="args">Arguments loaded from a configuration file.</param>
+	public ArgumentParser(LineInfo lineInfo, string[] args)
+	{
+		_arguments = args;
+		_lineInfo = lineInfo;
 		FixArguments();
 	}
 
@@ -51,24 +68,24 @@ internal class ArgumentParser
 	/// </summary>
 	/// <returns>A list of command/parameter pairs.</returns>
 	/// <exception cref="ParseException">Is thrown if the specified arguments could not be converted.</exception>
-	private ParseResult Parse(bool lineFromConfigFile)
+	private ProcDumpExCommand Parse()
 	{
 		var arguments = GetArguments();
-		CheckForNoDuplicates(arguments, lineFromConfigFile);
-		var commands = ExtractCommands(arguments, lineFromConfigFile);
+		CheckForNoDuplicates(arguments);
+		var commands = ExtractCommands(arguments);
 
-		CheckCommandValidity(commands, lineFromConfigFile);
+		CheckCommandValidity(commands);
 
 		if (commands.Any(o => o is CommandCfg))
 		{
-			return new ParseResult(commands, default, "");
+			return new ProcDumpExCommand(commands, default, "");
 		}
 
 		// Removes -pn commands
-		var processes = ExtractProcesses(commands, arguments, lineFromConfigFile);
+		var processes = ExtractProcesses(commands, arguments);
 		var baseProcdumpParameter = CreateBaseProcdumpCommands(arguments);
 
-		return new ParseResult(commands, processes, baseProcdumpParameter);
+		return new ProcDumpExCommand(commands, processes, baseProcdumpParameter);
 	}
 
 	/// <summary>
@@ -133,25 +150,19 @@ internal class ArgumentParser
 	/// </summary>
 	/// <param name="commands">List of commands to be validated.</param>
 	/// <param name="argumentsFromCfgFile">Flag indicating whether the arguments are from a configuration file.</param>
-	private void CheckCommandValidity(IReadOnlyList<ICommand> commands, bool argumentsFromCfgFile)
+	private void CheckCommandValidity(IReadOnlyList<ICommand> commands)
 	{
 		bool commandsAreValid = true;
 		foreach (var command in commands)
 		{
-			commandsAreValid &= command.Validate();
-		}
-
-		if (commands.Any(o => o is CommandCfg) && argumentsFromCfgFile)
-		{
-			commandsAreValid = false;
-			Logger.AddOutput("It is not possible to refer to another cfg file within the cfg file.", logType: LogType.Error);
+			commandsAreValid &= command.Validate(_lineInfo);
 		}
 
 		if (!commandsAreValid)
 		{
-			if (argumentsFromCfgFile)
+			if (_lineInfo is not null)
 			{
-				Logger.AddOutput("As the specified parameters are invalid, the line is ignored. The line is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
+				Logger.AddOutput($"{_lineInfo}: As the specified parameters are invalid, the line is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
 			}
 			else
 			{
@@ -166,16 +177,16 @@ internal class ArgumentParser
 	/// </summary>
 	/// <param name="arguments">List of arguments to be checked for duplicates.</param>
 	/// <param name="argumentsFromCfgFile">Flag indicating whether the arguments are from a configuration file.</param>
-	private void CheckForNoDuplicates(List<Argument> arguments, bool argumentsFromCfgFile)
+	private void CheckForNoDuplicates(List<Argument> arguments)
 	{
 		//Check if parameter exists more than once
 		foreach (var group in arguments.GroupBy(o => o.Command))
 		{
 			if (group.Count() > 1)
 			{
-				if (argumentsFromCfgFile)
+				if (_lineInfo is not null)
 				{
-					Logger.AddOutput($"The \"{group.Key}\" command has been defined more than once, the line in the cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
+					Logger.AddOutput($"{_lineInfo}: The \"{group.Key}\" command has been defined more than once, the line in the cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
 				}
 				else
 				{
@@ -193,7 +204,7 @@ internal class ArgumentParser
 	/// <param name="argumentsFromCfgFile">Flag indicating whether the arguments are from a configuration file.</param>
 	/// <returns>List of <see cref="ICommand"/> objects representing the parsed commands.</returns>
 	/// <exception cref="ParseException">Is thrown if the creation of the command from the passed arguments has failed.</exception>
-	private List<ICommand> ExtractCommands(List<Argument> arguments, bool argumentsFromCfgFile)
+	private List<ICommand> ExtractCommands(List<Argument> arguments)
 	{
 		List<ICommand> commands = new List<ICommand>();
 
@@ -214,9 +225,9 @@ internal class ArgumentParser
 			{
 				if (argument.Arguments is null || !argument.Arguments.Any())
 				{
-					if (argumentsFromCfgFile)
+					if (_lineInfo is not null)
 					{
-						Logger.AddOutput($"The \"{argument.Command}\" command expects parameters, but these have not been defined. The incorrectly defined line from the cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
+						Logger.AddOutput($"{_lineInfo}: The \"{argument.Command}\" command expects parameters, but these have not been defined. The incorrectly defined line from the cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
 					}
 					else
 					{
@@ -225,9 +236,9 @@ internal class ArgumentParser
 				}
 				else
 				{
-					if (argumentsFromCfgFile)
+					if (_lineInfo is not null)
 					{
-						Logger.AddOutput($"The \"{argument.Command}\" command does not expect any parameters, but some have been defined. The incorrectly defined line from the cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
+						Logger.AddOutput($"{_lineInfo}: The \"{argument.Command}\" command does not expect any parameters, but some have been defined. The incorrectly defined line from the cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
 					}
 					else
 					{
@@ -252,15 +263,15 @@ internal class ArgumentParser
 	/// <param name="arguments">List of parsed arguments.</param>
 	/// <param name="argumentsFromCfgFile">Flag indicating whether the arguments are from a configuration file.</param>
 	/// <returns>A tuple containing lists of process names and process IDs.</returns>
-	private (IReadOnlyList<string> ProcessNames, IReadOnlyList<int> ProcessIds) ExtractProcesses(List<ICommand> commands, List<Argument> arguments, bool argumentsFromCfgFile)
+	private (IReadOnlyList<string> ProcessNames, IReadOnlyList<int> ProcessIds) ExtractProcesses(List<ICommand> commands, List<Argument> arguments)
 	{
 		List<string> processes = [.. GetProcessesFromPnCommand(commands), .. GetProcessesFromLastArgument(arguments)];
 
 		if (!processes.Any())
 		{
-			if (argumentsFromCfgFile)
+			if (_lineInfo is not null)
 			{
-				Logger.AddOutput("No process name or process id was specified, the line in the Cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
+				Logger.AddOutput($"{_lineInfo}: No process name or process id was specified, the line in the Cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
 			}
 			else
 			{
@@ -270,7 +281,7 @@ internal class ArgumentParser
 			throw new ParseException();
 		}
 
-		return SplitProcessesIntoNameAndId(processes, argumentsFromCfgFile);
+		return SplitProcessesIntoNameAndId(processes);
 	}
 
 	private IEnumerable<string> GetProcessesFromLastArgument(List<Argument> arguments)
@@ -294,7 +305,7 @@ internal class ArgumentParser
 		return pn.Processes;
 	}
 
-	private (IReadOnlyList<string> ProcessNames, IReadOnlyList<int> ProcessIds) SplitProcessesIntoNameAndId(List<string> processes, bool argumentsFromCfgFile)
+	private (IReadOnlyList<string> ProcessNames, IReadOnlyList<int> ProcessIds) SplitProcessesIntoNameAndId(List<string> processes)
 	{
 		List<string> processNames = new();
 		List<int> processIds = new();
@@ -313,22 +324,22 @@ internal class ArgumentParser
 				continue;
 			}
 
-			if (argumentsFromCfgFile)
+			if (_lineInfo is not null)
 			{
-				Logger.AddOutput($"No valid process name or process id: {processParam}. Only process IDs (numeric values) or process names (*.exe) are expected. The line in the Cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
+				Logger.AddOutput($"{_lineInfo}: No valid process name or process id: {processParam}. Only process IDs (numeric values) or process names (*.exe) are expected. The parameter will be ignored.", logType: LogType.Error);
 			}
 			else
 			{
-				Logger.AddOutput($"No valid process name or process id: {processParam}. Only process IDs (numeric values) or process names (*.exe) are expected. ProcDumpEx is terminated. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
+				Logger.AddOutput($"No valid process name or process id: {processParam}. Only process IDs (numeric values) or process names (*.exe) are expected. The parameter will be ignored.", logType: LogType.Error);
 			}
 			throw new ParseException();
 		}
 
 		if (!processIds.Any() && !processNames.Any())
 		{
-			if (argumentsFromCfgFile)
+			if (_lineInfo is not null)
 			{
-				Logger.AddOutput("No process name or process id was specified, the line in the Cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
+				Logger.AddOutput($"{_lineInfo}: No process name or process id was specified, the line in the Cfg file is ignored. Use the parameter \"-help\" to display examples and allowed parameters.", logType: LogType.Error);
 			}
 			else
 			{
@@ -365,13 +376,13 @@ internal class ArgumentParser
 	/// <summary>
 	/// Gets the parsing result based on the provided arguments.
 	/// </summary>
-	/// <returns>A list of <see cref="ParseResult"/> objects representing the parsed results.</returns>
-	public IReadOnlyList<ParseResult>? GetParsingResult()
+	/// <returns>A list of <see cref="ProcDumpExCommand"/> objects representing the parsed results.</returns>
+	public IReadOnlyList<ProcDumpExCommand>? GetParsingResult()
 	{
-		ParseResult? result;
+		ProcDumpExCommand? result;
 		try
 		{
-			result = Parse(false);
+			result = Parse();
 		}
 		catch (ParseException)
 		{
@@ -379,7 +390,7 @@ internal class ArgumentParser
 			return null;
 		}
 
-		List<ParseResult> results = new List<ParseResult>();
+		List<ProcDumpExCommand> results = new List<ProcDumpExCommand>();
 
 		if (result.Commands.FirstOrDefault(o => o is CommandCfg) is not CommandCfg commandCfg)
 		{
@@ -387,14 +398,14 @@ internal class ArgumentParser
 		}
 		else
 		{
-			Logger.AddOutput("The argument \"-cfg\" was found in your input, the commands from the specified file are used for the further execution of the program.", logType: LogType.Info);
+			Logger.AddOutput("The argument \"-cfg\" was found in your input, the commands from the specified file(s) are used for the further execution of the program.", logType: LogType.Info);
 
 			foreach (var line in commandCfg.GetCfgFileArguments())
 			{
 				try
 				{
-					ArgumentParser parser = new ArgumentParser(line.ToArray());
-					results.Add(parser.Parse(true));
+					ArgumentParser parser = new ArgumentParser(line.LineInfo, line.Args.ToArray());
+					results.Add(parser.Parse());
 				}
 				catch (ParseException)
 				{

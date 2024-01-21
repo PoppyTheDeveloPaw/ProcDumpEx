@@ -1,4 +1,8 @@
-﻿namespace ProcDumpEx.Commands;
+﻿
+using ProcDumpEx.Utilities;
+using System.Text;
+
+namespace ProcDumpEx.Commands;
 
 /// <summary>
 /// <inheritdoc cref="IActionCommand" />
@@ -17,19 +21,55 @@ internal class CommandCputhdl : IActionCommand
 	/// </summary>
 	public const string CommandName = "-cputhdl";
 
+	/// <summary>
+	/// Contains the command that is required for the ProcDump execution
+	/// </summary>
+	private const string ProcdumpCommand = "-cl";
+
+	private string[] _cpuUsageValues;
+
 	/// <inheritdoc />
 	public string GetCommandName() => CommandName;
 
 	/// <inheritdoc />
-	public void Run()
+	public bool Validate(LineInfo? lineInfo)
 	{
-		throw new NotImplementedException();
+		StringBuilder sb = new StringBuilder();
+		if (lineInfo is not null)
+		{
+			sb.Append($"{lineInfo}: ");
+		}
+
+		if (_cpuUsageValues.Length == 0)
+		{
+			sb.Append($"{CommandName}: When using {CommandName}, at least one parameter must be specified!");
+			Logger.AddOutput(sb.ToString(), logType: LogType.Error);
+			return false;
+		}
+		else if (_cpuUsageValues.Select(o => int.TryParse(o, out int n) && n > 0).Any(o => o == false))
+		{
+			sb.Append($"{CommandName}: When using {CommandName}, only positive numerical integer values may be used!");
+			Logger.AddOutput(sb.ToString(), logType: LogType.Error);
+			return false;
+		}
+
+		return true;
 	}
 
 	/// <inheritdoc />
-	public bool Validate()
+	public Task RunAsync(Executor executor)
 	{
-		throw new NotImplementedException();
+		foreach (var cpuUsageValue in _cpuUsageValues)
+		{
+			executor.AddProcDumpCommand(string.Join(' ', ProcdumpCommand, cpuUsageValue));
+		}
+		return Task.CompletedTask;
+	}
+
+	/// <inheritdoc />
+	public Task StopAsync()
+	{
+		return Task.CompletedTask;
 	}
 
 	/// <summary>
@@ -37,6 +77,6 @@ internal class CommandCputhdl : IActionCommand
 	/// </summary>
 	public CommandCputhdl(params string[] values)
 	{
-
+		_cpuUsageValues = values;
 	}
 }

@@ -1,11 +1,7 @@
 ﻿using ProcDumpEx;
 using ProcDumpEx.Commands;
 using ProcDumpEx.Utilities;
-
-//if (!Utils.CheckPreconditions())
-//{
-//	return;
-//}
+using System.Threading.Tasks.Dataflow;
 
 if (!args.Any())
 {
@@ -13,9 +9,14 @@ if (!args.Any())
 	return;
 }
 
+//if (!Utils.CheckPreconditions())
+//{
+//	return;
+//}
+
 ArgumentParser parser = new ArgumentParser(args);
 
-if (parser.GetParsingResult() is not { } parsingResult)
+if (parser.GetParsingResult() is not { } parsedCommands)
 {
 	return;
 }
@@ -23,16 +24,16 @@ if (parser.GetParsingResult() is not { } parsingResult)
 ManualStopper manualStopper = new ManualStopper();
 manualStopper.SubscribeExitEvents();
 
-List<Task> awaitCommands = new List<Task>();
-foreach (var result in parsingResult)
+string logText = await Executor.ExecuteAsync(parsedCommands, manualStopper) switch
 {
-	awaitCommands.Add(new Executor(result, manualStopper).ExecuteAsync());
-}
-await Task.WhenAll(awaitCommands);
+	EndType.Normal => "ProcDumpEx was terminated after everything was done.",
+	EndType.Manually_Ctrl_Break => "ProcDumpEx was terminated manually by pressing: \"CTRL + Break\".",
+	EndType.Manually_Ctrl_C => "ProcDumpEx was terminated manually by pressing: \"CTRL + C\".",
+	EndType.Manually_X => "ProcDumpEx was terminated manually by pressing: \"X\".",
+	EndType.Manually_Closed => "ProcDumpEx was terminated by closing.",
+	_ => "ProcDumpEx has been terminated. Reason is unknown."
+};
 
-Logger.AddOutput("ProcDumpEx was terminated. Everything was finished.", logType: LogType.Exit);
+Logger.AddOutput(logText, logType: LogType.Exit);
 
-if (parsingResult.Any(o => o.Commands.Any(o => o is CommandLog)))
-{
-	Logger.WriteLogFile();
-}
+Executor.ExecuteLog(parsedCommands);

@@ -6,7 +6,12 @@
 internal interface IActionCommand : ICommand
 {
 	/// <summary>
-	/// Method for executing the action of the command.
+	/// Method for executing the action of the command async.
 	/// </summary>
-	public void Run();
+	public Task RunAsync(Executor executor);
+
+	/// <summary>
+	/// Method to stop the execution of the command action async
+	/// </summary>
+	public Task StopAsync();
 }
