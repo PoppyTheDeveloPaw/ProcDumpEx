@@ -121,4 +121,22 @@ internal static class Utils
 		Logger.AddOutput($"Procdump file (Version: ${Enum.GetName(version)}) missing. Expected under: {string.Join(" or ", paths)}", logType: LogType.Error);
 		throw new ProcdumpFileMissingException();
 	}
+
+	/// <summary>
+	/// Removes a specified substring from the beginning of the given string.
+	/// </summary>
+	/// <param name="str">The original string from which the specified substring might be removed.</param>
+	/// <param name="trimString">The substring that should be removed from the beginning of the original string.</param>
+	/// <param name="ignoreCase">Indicates whether the comparison for the substring removal should be case-insensitive (default is false).</param>
+	/// <returns>
+	/// The original string with the specified substring removed if it was present at the beginning; otherwise, the original string remains unchanged.
+	/// </returns>
+	public static string TrimStart(this string str, string trimString, bool ignoreCase = false)
+	{
+		if (ignoreCase ? str.StartsWith(trimString, StringComparison.OrdinalIgnoreCase) : str.StartsWith(trimString))
+		{
+			return str.Substring(trimString.Length);
+		}
+		return str;
+	}
 }

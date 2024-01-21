@@ -1,13 +1,40 @@
 ﻿namespace ProcDumpEx.Commands;
 
-internal class CommandMemthd : ICommand
+/// <summary>
+/// <inheritdoc cref="IActionCommand" />
+/// <para>
+/// The 'memthd' parameter extends the ProcDump '-m' parameter. 
+/// By using the 'memthd' parameter, users can set multiple memory thresholds for one or more processes without having to manually open ProcDump instances. 
+/// It is also possible to combine this parameter with the '-pn' and '-inf' parameters. The values provided are expressed in units of megabytes (MB).
+/// </para>
+/// </summary>
+internal class CommandMemthd : IActionCommand
 {
+	/// <summary>
+	/// The constant representing the command name.
+	/// </summary>
 	public const string CommandName = "-memthd";
 
+	/// <inheritdoc />
 	public string GetCommandName() => CommandName;
 
-	public bool IsRuntimeOption() => false;
+	/// <inheritdoc />
+	public void Run()
+	{
+		throw new NotImplementedException();
+	}
 
+	/// <inheritdoc />
+	public bool Validate()
+	{
+		return true;
+		//TODO
+		throw new NotImplementedException();
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="CommandMemthd"/> class
+	/// </summary>
 	public CommandMemthd(params string[] values)
 	{
 
