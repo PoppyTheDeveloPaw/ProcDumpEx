@@ -7,40 +7,106 @@ internal class ProcessManager
 {
 	ManualStopper _stopper;
 
-	private Dictionary<ProcdumpProcessIdentifier, Process> _currentlyMonitoredProcesses;
+	private readonly Dictionary<ProcdumpProcessIdentifier, Process> _currentlyMonitoredProcesses;
+	private readonly object _lock = new object();
 
-	public async Task StartProcdumpAsync(ProcdumpVersion version, Process process, string args, bool use64Bit, string executionId = "", bool deactivateConsoleLogging = false)
+	public ProcessManager(ManualStopper manualStopper)
+	{
+		_currentlyMonitoredProcesses = new Dictionary<ProcdumpProcessIdentifier, Process>();
+		_stopper = manualStopper;
+
+		_stopper.ManualStopEvent += Stopper_ManualStopEvent;
+	}
+
+	private void Stopper_ManualStopEvent(object? sender, StopEventArgs e)
+	{
+		KillAll();
+	}
+
+	public async Task StartProcdumpAndWaitForExitAsync(Process process, string args, bool use64Bit, string executionId = "", bool deactivateConsoleLogging = false)
 	{
 		if (IsCurrentlyMonitored(process.Id, args))
 		{
 			return;
 		}
 
-		string procdumpPath = "";
+		string? procdumpPath = GetProcdumpPath(process, use64Bit, executionId);
 
-		try
+		if ( string.IsNullOrWhiteSpace( procdumpPath ) )
 		{
-			var requiredProcdumpVersion = GetRequiredProcdumpVersion(process, use64Bit);
-			procdumpPath = Utils.GetProcdumpPath(requiredProcdumpVersion);
-		}
-		catch (ProcdumpFileMissingException)
-		{
-			_stopper.ExceptionStop();
-			return;
-		}
-		catch (GetArchitectureException)
-		{
-			_stopper.ExceptionStop();
-			Logger.AddOutput("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters", LogType.Error, executionId);
-			return;
-		}
-		catch (InvalidProcessorArchitecture e)
-		{
-			_stopper.ExceptionStop();
-			Logger.AddException(e.Message, e, executionId);
 			return;
 		}
 
+		var procdumpProcess = StartProcdumpProcess( procdumpPath, args );
+
+		if (procdumpProcess is null)
+		{
+			//TODO Handling
+			return;
+		}
+
+		var info = ProcDumpInfo.GetProcDumpInfo(procdumpProcess, process);
+		AddMonitoredProcesses(process, info, executionId);
+
+		bool succeeded = await WaitForExitAndLogOutputAsync(info, procdumpProcess, executionId, deactivateConsoleLogging);
+
+		int numberOfCurrentlyMonitoredProcesses = RemoveMonitoredProcess(info, executionId);
+
+		if (succeeded)
+		{
+			Logger.AddOutput($"{info.UsedProcDumpFileName} finished successfully. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {numberOfCurrentlyMonitoredProcesses}", LogType.Success, executionId);
+		}
+        else
+        {
+			Logger.AddOutput($"{info.UsedProcDumpFileName} terminated without success. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {numberOfCurrentlyMonitoredProcesses}", LogType.Failure, executionId);
+        }
+	}
+
+	private void KillAll()
+	{
+		if (_currentlyMonitoredProcesses.Any())
+		{
+			foreach (var itemPair in _currentlyMonitoredProcesses)
+			{
+				itemPair.Value.Kill();
+			}
+		}
+	}
+
+	private int RemoveMonitoredProcess(ProcDumpInfo info, string executionId)
+	{
+		lock (_lock)
+		{
+			_currentlyMonitoredProcesses.Remove(new(info.ExaminedProcessId, info.UsedArguments));
+			return _currentlyMonitoredProcesses.Count;
+		}
+	}
+
+	private async Task<bool> WaitForExitAndLogOutputAsync(ProcDumpInfo info, Process procdumpProcess, string executionId, bool deactivateConsoleLogging)
+	{
+		string output = "";
+
+		async Task ReadOutput(StreamReader standardOutput)
+		{
+			output = await standardOutput.ReadToEndAsync();
+		}
+
+		await Task.WhenAll(ReadOutput(procdumpProcess.StandardOutput), procdumpProcess.WaitForExitAsync());
+
+		var outputList = output.Split("\r\n");
+
+		Logger.AddProcdumpOutput(info, output.Split("\r\n"), executionId, deactivateConsoleLogging);
+
+		if (output.Contains("Use -? -e to see example command lines."))
+		{
+			Logger.AddOutput("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.", LogType.Failure, executionId);
+		}
+
+		return output.Contains("Dump count reached");
+	}
+
+	private Process? StartProcdumpProcess(string procdumpPath, string args)
+	{
 		ProcessStartInfo startInfo = new ProcessStartInfo(procdumpPath)
 		{
 			UseShellExecute = false,
@@ -51,45 +117,7 @@ internal class ProcessManager
 			Arguments = args
 		};
 
-		Process procdumpProcess = new Process()
-		{
-			StartInfo = new ProcessStartInfo(procdumpPath)
-			{
-				UseShellExecute = false,
-				CreateNoWindow = true,
-				RedirectStandardInput = true,
-				RedirectStandardOutput = true,
-				RedirectStandardError = true,
-				Arguments = args
-			}
-		};
-
-		if (Process.Start(startInfo) is { } procdump)
-		{
-			ProcDumpInfo procdumpInfo = new ProcDumpInfo(startInfo.FileName, procdump.Id, startInfo.Arguments, process.ProcessName, process.Id);
-
-			AddMonitoredProcesses(process, procdumpInfo, executionId);
-
-			string output = "";
-
-			async Task ReadOutput(StreamReader standardOutput)
-			{
-				output = await standardOutput.ReadToEndAsync();
-			}
-
-			await Task.WhenAll(ReadOutput(procdump.StandardOutput), procdump.WaitForExitAsync());
-
-			var outputList = output.Split("\r\n");
-
-			Logger.AddProcdumpOutput(procdumpInfo, output.Split("\r\n"), executionId, deactivateConsoleLogging);
-
-			if (output.Contains("Use -? -e to see example command lines."))
-			{
-				Logger.AddOutput("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.", LogType.Failure, executionId);
-			}
-			
-			//TODO Remove
-		}
+		return Process.Start(startInfo);
 	}
 
 	private void AddMonitoredProcesses(Process process, ProcDumpInfo info, string executionId)
@@ -97,6 +125,32 @@ internal class ProcessManager
 		_currentlyMonitoredProcesses[new(info.ExaminedProcessId, info.UsedArguments)] = process;
 
 		Logger.AddOutput($"{info.UsedProcDumpFileName} started with process id: {info.ProcDumpProcessId} / arguments: {info.UsedArguments}. Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentlyMonitoredProcesses.Count}", executionId: executionId);
+	}
+
+	private string? GetProcdumpPath(Process process, bool use64Bit, string executionId)
+	{
+		try
+		{
+			var requiredProcdumpVersion = GetRequiredProcdumpVersion(process, use64Bit);
+			return Utils.GetProcdumpPath(requiredProcdumpVersion);
+		}
+		catch (ProcdumpFileMissingException)
+		{
+			_stopper.ExceptionStop();
+			return null;
+		}
+		catch (GetArchitectureException)
+		{
+			_stopper.ExceptionStop();
+			Logger.AddOutput("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters", LogType.Error, executionId);
+			return null;
+		}
+		catch (InvalidProcessorArchitecture e)
+		{
+			_stopper.ExceptionStop();
+			Logger.AddException(e.Message, e, executionId);
+			return null;
+		}
 	}
 
 	private ProcdumpVersion GetRequiredProcdumpVersion(Process process, bool use64bit)

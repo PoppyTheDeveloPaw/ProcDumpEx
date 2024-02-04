@@ -1,4 +1,7 @@
-﻿namespace ProcDumpEx.Utilities;
+﻿using System;
+using System.Diagnostics;
+
+namespace ProcDumpEx.Utilities;
 
 internal struct ProcDumpInfo
 {
@@ -15,5 +18,10 @@ internal struct ProcDumpInfo
 		UsedArguments = usedArguments;
 		ExaminedProcessName = examinedProcessName;
 		ExaminedProcessId = examinedProcessId;
+	}
+	
+	internal static ProcDumpInfo GetProcDumpInfo(Process procdumpProcess, Process monitoredApplicationProcess)
+	{
+		return new ProcDumpInfo(procdumpProcess.StartInfo.FileName, procdumpProcess.Id, procdumpProcess.StartInfo.Arguments, monitoredApplicationProcess.ProcessName, monitoredApplicationProcess.Id);
 	}
 }
