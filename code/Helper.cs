@@ -51,12 +51,16 @@ namespace ProcDumpEx
 			string filePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Description", $"{type.Name}_Description.txt"));
 
 			if (!File.Exists(filePath))
+			{
 				return [$"Description file for parameter \"{type.GetOption()}\" not available. Expected under {filePath}"];
+			}
 
 			var descContent = File.ReadAllLines(filePath);
 
-			if (descContent.Any(o => !string.IsNullOrEmpty(o)))
+			if (Array.Exists(descContent, str => !string.IsNullOrWhiteSpace(str)))
+			{
 				return descContent;
+			}
 
 			return [$"The description file {filePath} exists but is empty"];
 		}
@@ -106,7 +110,7 @@ namespace ProcDumpEx
 		{
 			if (!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
 			{
-				ConsoleEx.WriteError("Administrator privileges are required to run ProcDumpEx. Please restart the console as administrator.", "Helper");
+				ConsoleEx.WriteLog("Administrator privileges are required to run ProcDumpEx. Please restart the console as administrator.", "Helper", LogType.Error);
 				return false;
 			}
 			return true;
@@ -117,7 +121,7 @@ namespace ProcDumpEx
 		/// </summary>
 		/// <param name="logId">Caller id for logging.</param>
 		/// <returns>Returns <see langword="true"/> if all ProcDump files exists; otherwise <see langword="false"/>.</returns>
-		internal static bool IsProcdumpFileMissing(string logId)
+		internal static bool IsProcDumpFileMissing(string logId)
 		{
 			bool procdumpFileMissing = false;
 
@@ -127,7 +131,7 @@ namespace ProcDumpEx
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message, logId);
+				ConsoleEx.WriteLog(e.Message, logId, LogType.Error);
 				procdumpFileMissing = true;
 			}
 
@@ -137,7 +141,7 @@ namespace ProcDumpEx
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message, logId);
+				ConsoleEx.WriteLog(e.Message, logId, LogType.Error);
 				procdumpFileMissing = true;
 			}
 
@@ -147,7 +151,7 @@ namespace ProcDumpEx
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message, logId);
+				ConsoleEx.WriteLog(e.Message, logId, LogType.Error);
 				procdumpFileMissing = true;
 			}
 
@@ -193,13 +197,13 @@ namespace ProcDumpEx
 
 			if (!eulaAccepted)
 			{
-				ConsoleEx.WriteInfo("Before you can use ProcDumpEx you must accept the End User License Agreement (EULA) of ProcDump. Do you want to do this now (y/n):", "Helper");
+				ConsoleEx.WriteLog("Before you can use ProcDumpEx you must accept the End User License Agreement (EULA) of ProcDump. Do you want to do this now (y/n):", "Helper", LogType.Info);
 
 				string? value = Console.ReadLine();
 
 				if (!string.IsNullOrEmpty(value) && string.Equals(value, "y", StringComparison.OrdinalIgnoreCase))
 				{
-					ConsoleEx.WriteError("By entering anything other than \"y\" you have not agreed to ProcDump's End User License Agreement (EULA). ProcDumpEx is terminated.", "Helper");
+					ConsoleEx.WriteLog("By entering anything other than \"y\" you have not agreed to ProcDump's End User License Agreement (EULA). ProcDumpEx is terminated.", "Helper", LogType.Error);
 					return false;
 				}
 

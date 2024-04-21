@@ -2,8 +2,6 @@
 using ProcDumpExExceptions;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace ProcDumpEx
 {
@@ -15,11 +13,11 @@ namespace ProcDumpEx
 		{
 			var dictionary = process.ReadEnvironmentVariables();
 
-			if (!dictionary.TryGetValue(ProcessorArchitecture, out var value))
+			if (!dictionary.TryGetValue(ProcessorArchitecture, out var value) || string.IsNullOrWhiteSpace(value))
+			{
+				throw new GetArchitectureException();
+			}
 				
-			if (string.IsNullOrEmpty(value))
-					throw new GetArchitectureException();
-
 			try
 			{
 				return (ProcessorArchitecture)Enum.Parse(typeof(ProcessorArchitecture), value!, true);

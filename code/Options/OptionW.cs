@@ -18,7 +18,7 @@ namespace ProcDumpEx.Options
 
 		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
 		{
-			ConsoleEx.WriteInfo($"Until ProcDumpEx is terminated, it waits for new instances of the specified process names ({string.Join(", ", command.ProcessNames)}). For newly started process instances ProcDump is executed with the specified parameters", command.LogId);
+			ConsoleEx.WriteLog($"Until ProcDumpEx is terminated, it waits for new instances of the specified process names ({string.Join(", ", command.ProcessNames)}). For newly started process instances ProcDump is executed with the specified parameters", command.LogId, LogType.Info);
 			_command = command;
 			try
 			{
@@ -26,7 +26,7 @@ namespace ProcDumpEx.Options
 			}
 			catch (System.Management.ManagementException e)
 			{
-				ConsoleEx.WriteError("To use the parameter \"-w\" ProcDumpEx must be started as administrator!", e, command.LogId);
+				ConsoleEx.WriteException("To use the parameter \"-w\" ProcDumpEx must be started as administrator!", e, command.LogId);
 				return Task.FromResult(false);
 			}
 			return Task.FromResult(true);

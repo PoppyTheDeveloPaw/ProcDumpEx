@@ -7,6 +7,7 @@
 		<Nullable>enable</Nullable>
 		<RunPostBuildEvent>Always</RunPostBuildEvent>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">

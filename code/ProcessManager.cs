@@ -6,8 +6,10 @@ namespace ProcDumpEx
 {
 	internal class ProcessManager
 	{
-		private Dictionary<ProcdumpProcessIdentifier, Process> _currentMonitoredProcesses;
+		private readonly Dictionary<ProcDumpProcessIdentifier, Process> _currentMonitoredProcesses;
 		private bool _killAllCalled = false;
+
+		private static readonly object _removeLock = new ();
 
 		internal event EventHandler<ProcDumpInfo>? ProcDumpProcessTerminated;
 
@@ -15,7 +17,7 @@ namespace ProcDumpEx
 
 		public ProcessManager()
 		{
-			_currentMonitoredProcesses = new Dictionary<ProcdumpProcessIdentifier, Process>();
+			_currentMonitoredProcesses = [];
 		}
 
 		public bool IsMonitored(int processId, string arguments) => _currentMonitoredProcesses.ContainsKey(new(processId, arguments));
@@ -25,10 +27,8 @@ namespace ProcDumpEx
 		public void AddNewMonitoredProcess(int processId, string arguments, Process process, ProcDumpInfo info, string logId) 
 		{
 			_currentMonitoredProcesses[new(processId, arguments)] = process;
-			ConsoleEx.WriteLine($"{info.UsedProcDumpFileName} started with process id: {info.ProcDumpProcessId} / arguments: {info.UsedArguments}. Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}", logId);
+			ConsoleEx.WriteLog($"{info.UsedProcDumpFileName} started with process id: {info.ProcDumpProcessId} / arguments: {info.UsedArguments}. Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}", logId);
 		}
-
-		object _removeLock = new object();
 
 		public bool RemoveMonitoredProcess(int processId, string arguments, ProcDumpInfo info, bool writeIdleMessage, bool succeeded, string logId)
 		{
@@ -37,17 +37,19 @@ namespace ProcDumpEx
 				bool value = _currentMonitoredProcesses.Remove(new(processId, arguments));
 
 				if (succeeded)
-					ConsoleEx.WriteSuccess($"{info.UsedProcDumpFileName} finished successfully. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}", logId);
+					ConsoleEx.WriteLog($"{info.UsedProcDumpFileName} finished successfully. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}", logId, LogType.Success);
 				else
-					ConsoleEx.WriteFailure($"{info.UsedProcDumpFileName} terminated without success. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}", logId);
+					ConsoleEx.WriteLog($"{info.UsedProcDumpFileName} terminated without success. Id: {info.ProcDumpProcessId}, Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}", logId, LogType.Failure);
 
-				if (writeIdleMessage && !_killAllCalled && !_currentMonitoredProcesses.Any())
-					ConsoleEx.WriteInfo("Currently all active ProcDump processes have been terminated. ProcDumpEx is idle until new processes are started.", logId);
+				if (writeIdleMessage && !_killAllCalled && _currentMonitoredProcesses.Count == 0)
+					ConsoleEx.WriteLog("Currently all active ProcDump processes have been terminated. ProcDumpEx is idle until new processes are started.", logId, LogType.Info);
 
 				ProcDumpProcessTerminated?.Invoke(this, info);
 
-				if (!_currentMonitoredProcesses.Any())
+				if (_currentMonitoredProcesses.Count == 0)
+				{
 					MonitoringListEmpty?.Invoke(this, EventArgs.Empty);
+				}
 
 				return value;
 			}
@@ -57,7 +59,7 @@ namespace ProcDumpEx
 		{
 			_killAllCalled = true;
 
-			if (_currentMonitoredProcesses.Any())
+			if (_currentMonitoredProcesses.Count != 0)
 			{
 				foreach (var itemPair in _currentMonitoredProcesses)
 				{
@@ -70,27 +72,11 @@ namespace ProcDumpEx
 		}
 	}
 
-	internal record ProcdumpProcessIdentifier
+	internal record ProcDumpProcessIdentifier(int processId, string arguments)
 	{
-		internal int MonitoredProcess { get; }
-		internal string Arguments { get; }
+		internal int MonitoredProcess => processId;
+		internal string Arguments => arguments;
 
-		public ProcdumpProcessIdentifier(int processId, string arguments)
-		{
-			MonitoredProcess = processId;
-			Arguments = arguments;
-		}
-
-		public override int GetHashCode()
-		{
-			unchecked // Overflow is fine, just wrap
-			{
-				int hash = 17;
-				// Suitable nullity checks etc, of course :)
-				hash = hash * 23 + MonitoredProcess.GetHashCode();
-				hash = hash * 23 + Arguments.GetHashCode();
-				return hash;
-			}
-		}
+		public override int GetHashCode() => HashCode.Combine(MonitoredProcess, Arguments);
 	}
 }

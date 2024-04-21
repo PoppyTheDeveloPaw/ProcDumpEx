@@ -46,7 +46,7 @@ namespace ProcDumpEx
 			}
 			catch (Exception e) when (e is ArgumentException or ValueExpectedException)
 			{
-				ConsoleEx.WriteError(e.Message, "ProcDumpExCommandParser");
+				ConsoleEx.WriteLog(e.Message, "ProcDumpExCommandParser", LogType.Error);
 				return null;
 			}
 
