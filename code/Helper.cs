@@ -2,6 +2,7 @@
 using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Reflection;
 using System.Security.Principal;
@@ -10,6 +11,11 @@ namespace ProcDumpEx
 {
 	internal static class Helper
 	{
+		/// <summary>
+		/// Get all types with option attributes.
+		/// </summary>
+		/// <param name="assembly"></param>
+		/// <returns></returns>
 		internal static IEnumerable<Type> GetTypesWithOptionAttribute(Assembly assembly)
 		{
 			foreach (Type type in assembly.GetTypes())
@@ -21,8 +27,25 @@ namespace ProcDumpEx
 			}
 		}
 
+		/// <summary>
+		/// Get option from type
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		internal static string GetOption(this Type type) => GetOptionAttribute(type).Option;
+		
+		/// <summary>
+		/// Returns if an value is expected for the given type
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		internal static bool GetValueExpected(this Type type) => GetOptionAttribute(type).ValueExpected;
+		
+		/// <summary>
+		/// Returns the description of the type.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		internal static string[] GetDescription(this Type type)
 		{
 			string filePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Description", $"{type.Name}_Description.txt"));
@@ -38,6 +61,11 @@ namespace ProcDumpEx
 			return [$"The description file {filePath} exists but is empty"];
 		}
 
+		/// <summary>
+		/// Returns the option attribute for the given type.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		internal static OptionAttribute GetOptionAttribute(this Type type) => (OptionAttribute)type.GetCustomAttribute(typeof(OptionAttribute))!;
 
 		/// <summary>
@@ -70,6 +98,10 @@ namespace ProcDumpEx
 			throw new ProcDumpFileMissingException(procDumpInfo.FileName, absoluteFolderPath, absoluteFilePath);
 		}
 
+		/// <summary>
+		/// Check if running with administrator privileges
+		/// </summary>
+		/// <returns>Returns <see langword="true"/> if the program is running with administrator privileges; otherwise <see langword="false"/>.</returns>
 		internal static bool CheckAdministratorPrivileges()
 		{
 			if (!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
@@ -80,6 +112,11 @@ namespace ProcDumpEx
 			return true;
 		}
 
+		/// <summary>
+		/// Checks if any of the procdump files (x32, x64, ARM64) is missing.
+		/// </summary>
+		/// <param name="logId">Caller id for logging.</param>
+		/// <returns>Returns <see langword="true"/> if all ProcDump files exists; otherwise <see langword="false"/>.</returns>
 		internal static bool IsProcdumpFileMissing(string logId)
 		{
 			bool procdumpFileMissing = false;
@@ -117,7 +154,15 @@ namespace ProcDumpEx
 			return procdumpFileMissing;
 		}
 
-		internal static bool TryGetValue<TValueType>(this PropertyDataCollection dataCollection, string propertyName, out TValueType? value)
+		/// <summary>
+		/// Try to get value from PropertyDataCollection
+		/// </summary>
+		/// <typeparam name="TValueType"></typeparam>
+		/// <param name="dataCollection"></param>
+		/// <param name="propertyName"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		internal static bool TryGetValue<TValueType>(this PropertyDataCollection dataCollection, string propertyName, [NotNullWhen(true)] out TValueType? value)
 		{
 			value = default;
 			foreach (var item in dataCollection)
@@ -135,6 +180,10 @@ namespace ProcDumpEx
 			return false;
 		}
 
+		/// <summary>
+		/// Check if EULA is accepted
+		/// </summary>
+		/// <returns></returns>
 		internal static bool CheckEula()
 		{
 			bool eulaAccepted = false;
@@ -160,6 +209,10 @@ namespace ProcDumpEx
 			return true;
 		}
 
+		/// <summary>
+		/// Fix arguments
+		/// </summary>
+		/// <param name="args"></param>
 		internal static void FixArgs(string[] args)
 		{
 			for (int i = 0; i < args.Length; i++)
