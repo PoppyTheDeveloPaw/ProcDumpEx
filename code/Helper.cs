@@ -41,51 +41,33 @@ namespace ProcDumpEx
 		internal static OptionAttribute GetOptionAttribute(this Type type) => (OptionAttribute)type.GetCustomAttribute(typeof(OptionAttribute))!;
 
 		/// <summary>
-		/// Returns the path of the procdump64.exe file if exists, otherwise throws an <see cref="ProcDumpFileMissingException"/>
+		/// Checks if the given procdump file exists and returns it in good case, if not an exception is thrown
 		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="ProcDumpFileMissingException"></exception>
-		internal static string GetExistingProcDump64Path()
+		/// <param name="fileName">Name of the procdump file.</param>
+		/// <param name="folderName">Name of the folder in which the procdump file could be located</param>
+		/// <returns>Path of the given ProcDump file if it exists</returns>
+		/// <exception cref="ProcDumpFileMissingException">Is thrown if file not found.</exception>
+		internal static string GetExistingProcDumpPath(ProcDumpVersion procDump)
 		{
-			if (File.Exists(Constants.FullProcdump64FolderPath))
-				return Constants.FullProcdump64FolderPath;
+			if (!Constants.ProcDumpDict.TryGetValue(procDump, out var procDumpInfo))
+			{
+				// Should never happen
+				throw new ArgumentException("Given parameter is unknown", nameof(procDump));
+			}
 
-			if (File.Exists(Constants.FullProcdump64Path))
-				return Constants.FullProcdump64Path;
+			string relativeFilePath = @$".\{procDumpInfo.FileName}";
+			string relativeFolderPath = @$".\{procDumpInfo.FolderName}\{procDumpInfo.FileName}";
 
-			throw new ProcDumpFileMissingException(Constants.ProcDump64FileName, Constants.FullProcdump64FolderPath, Constants.FullProcdump64Path);
-		}
+			string absoluteFilePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), relativeFilePath));
+			string absoluteFolderPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), relativeFolderPath));
 
-		/// <summary>
-		/// Returns the path of the procdump.exe file if exists, otherwise throws an <see cref="ProcDumpFileMissingException"/>
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="ProcDumpFileMissingException"></exception>
-		internal static string GetExistingProcDumpPath()
-		{
-			if (File.Exists(Constants.FullProcdumpFolderPath))
-				return Constants.FullProcdumpFolderPath;
+			if (File.Exists(absoluteFolderPath))
+				return absoluteFolderPath;
 
-			if (File.Exists(Constants.FullProcdumpPath))
-				return Constants.FullProcdumpPath;
+			if (File.Exists(absoluteFilePath))
+				return absoluteFilePath;
 
-			throw new ProcDumpFileMissingException(Constants.ProcDumpFileName, Constants.FullProcdumpFolderPath, Constants.FullProcdumpPath);
-		}
-
-		/// <summary>
-		/// Returns the path of the procdump.exe file if exists, otherwise throws an <see cref="ProcDumpFileMissingException"/>
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="ProcDumpFileMissingException"></exception>
-		internal static string GetExistingProcDump64aPath()
-		{
-			if (File.Exists(Constants.FullProcdump64aFolderPath))
-				return Constants.FullProcdump64aFolderPath;
-
-			if (File.Exists(Constants.FullProcdump64aPath))
-				return Constants.FullProcdump64aPath;
-
-			throw new ProcDumpFileMissingException(Constants.ProcDump64aFileName, Constants.FullProcdump64aFolderPath, Constants.FullProcdump64aPath);
+			throw new ProcDumpFileMissingException(procDumpInfo.FileName, absoluteFolderPath, absoluteFilePath);
 		}
 
 		internal static bool CheckAdministratorPrivileges()
@@ -104,7 +86,7 @@ namespace ProcDumpEx
 
 			try
 			{
-				GetExistingProcDump64Path();
+				GetExistingProcDumpPath(ProcDumpVersion.ProcDump64);
 			}
 			catch (ProcDumpFileMissingException e)
 			{
@@ -114,7 +96,7 @@ namespace ProcDumpEx
 
 			try
 			{
-				GetExistingProcDumpPath();
+				GetExistingProcDumpPath(ProcDumpVersion.ProcDump);
 			}
 			catch (ProcDumpFileMissingException e)
 			{
@@ -124,7 +106,7 @@ namespace ProcDumpEx
 
 			try
 			{
-				GetExistingProcDump64aPath();
+				GetExistingProcDumpPath(ProcDumpVersion.ProcDump64a);
 			}
 			catch (ProcDumpFileMissingException e)
 			{

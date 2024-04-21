@@ -309,12 +309,14 @@ namespace ProcDumpEx
 			{
 				case ProcessorArchitecture.x86:
 					if (_use64)
-						return Helper.GetExistingProcDump64Path();
-					return Helper.GetExistingProcDumpPath();
+					{
+						return Helper.GetExistingProcDumpPath(ProcDumpVersion.ProcDump64);
+					}
+					return Helper.GetExistingProcDumpPath(ProcDumpVersion.ProcDump);
 				case ProcessorArchitecture.AMD64 or ProcessorArchitecture.x64:
-					return Helper.GetExistingProcDump64Path();
+					return Helper.GetExistingProcDumpPath(ProcDumpVersion.ProcDump64);
 				case ProcessorArchitecture.ARM64:
-					return Helper.GetExistingProcDump64aPath();
+					return Helper.GetExistingProcDumpPath(ProcDumpVersion.ProcDump64a);
 			}
 
 			//Should never happen

@@ -43,7 +43,7 @@ namespace ProcDumpEx.Options
 
 			try
 			{
-				process.StartInfo = new ProcessStartInfo(Helper.GetExistingProcDumpPath(), "-?")
+				process.StartInfo = new ProcessStartInfo(Helper.GetExistingProcDumpPath(ProcDumpVersion.ProcDump), "-?")
 				{
 					UseShellExecute = false
 				};
