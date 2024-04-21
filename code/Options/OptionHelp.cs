@@ -17,27 +17,29 @@ namespace ProcDumpEx.Options
 		{
 			Version? version = Assembly.GetExecutingAssembly().GetName().Version;
 
-			ConsoleEx.WriteLine($"ProcDumpEx {(version is not null ? $"v{version}" : string.Empty)} - Extension to Microsoft's Sysinternal Tool ProcDump", logId);
-			ConsoleEx.WriteLine($"Copyright (C) Alexander Peipp and Daniel Eichner", logId);
-			ConsoleEx.WriteLine();
+			ConsoleEx.WriteLog($"ProcDumpEx {(version is not null ? $"v{version}" : string.Empty)} - Extension to Microsoft's Sysinternal Tool ProcDump", logId);
+			ConsoleEx.WriteLog($"Copyright (C) Alexander Peipp and Daniel Eichner", logId);
+			ConsoleEx.WriteEmptyLine();
 
 			ConsoleEx.WriteUnderline("ProcDumpEx-Help:", logId);
-			ConsoleEx.WriteLine();
-			ConsoleEx.WriteLine("ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.", logId);
-			ConsoleEx.WriteLine("For a better overview, https://github.com/PoppyTheDeveloPaw/ProcDumpEx can be visited", logId);
-			ConsoleEx.WriteLine();
+			ConsoleEx.WriteEmptyLine();
+			ConsoleEx.WriteLog("ProcDumpEx extends ProcDump with additional functionality, such as process monitoring and /or simplified parameter input.", logId);
+			ConsoleEx.WriteLog("For a better overview, https://github.com/PoppyTheDeveloPaw/ProcDumpEx can be visited", logId);
+			ConsoleEx.WriteEmptyLine();
 			ConsoleEx.WriteUnderline("ProcDumpEx provides the following additional parameters:", logId);
-			ConsoleEx.WriteLine();
+			ConsoleEx.WriteEmptyLine();
 			foreach (var type in Helper.GetTypesWithOptionAttribute(Assembly.GetExecutingAssembly()))
 			{
 				ConsoleEx.WriteUnderline(type.GetOption(), logId);
 
 				foreach (string descLine in type.GetDescription())
-					ConsoleEx.WriteLine(descLine, logId);
+				{
+					ConsoleEx.WriteLog(descLine, logId);
+				}
 
-				ConsoleEx.WriteLine();
+				ConsoleEx.WriteEmptyLine();
 			}
-			ConsoleEx.WriteLine();
+			ConsoleEx.WriteEmptyLine();
 			ConsoleEx.WriteUnderline("Below is the usage of procdump itself", logId);
 			var process = new Process();
 
@@ -50,7 +52,7 @@ namespace ProcDumpEx.Options
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message, logId);
+				ConsoleEx.WriteLog(e.Message, logId, LogType.Error);
 			}
 
 			process.Start();

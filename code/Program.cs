@@ -7,7 +7,7 @@ if (!Helper.CheckAdministratorPrivileges())
 if (!Helper.CheckEula())
 	return;
 
-if (Helper.IsProcdumpFileMissing("Base"))
+if (Helper.IsProcDumpFileMissing("Base"))
 	return;
 
 Helper.FixArgs(args);
@@ -37,13 +37,17 @@ if (commandList.Any(o => o.ProcessNames.Any() || o.ProcessIds.Any()))
 	await Task.WhenAll(awaitCommands);
 
 	if (manuallyExit)
-		ConsoleEx.WriteColor(text, ConsoleColor.DarkMagenta, "Base");
+	{
+		ConsoleEx.WriteLog(text, "Base", LogType.ShutdownLog);
+	}
 	else
-		ConsoleEx.WriteColor("ProcDumpEx was terminated after everything was done", ConsoleColor.DarkMagenta, "Base");
+	{
+		ConsoleEx.WriteLog("ProcDumpEx was terminated after everything was done", "Base", LogType.ShutdownLog);
+	}
 }
 else
 {
-	ConsoleEx.WriteError("With the specified parameters, neither is waiting for a process to become active, nor is a process to be monitored active. ProcDumpEx is aborted", "Base");
+	ConsoleEx.WriteLog("With the specified parameters, neither is waiting for a process to become active, nor is a process to be monitored active. ProcDumpEx is aborted", "Base", LogType.Error);
 }
 
 if (commandList.Any(o => o.Log))

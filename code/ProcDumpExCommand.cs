@@ -55,27 +55,27 @@ namespace ProcDumpEx
 
 			_processManager.MonitoringListEmpty += ProcessManager_MonitoringListEmpty;
 
-			Help = _procDumpExOptions.Any(o => o is OptionHelp);
+			Help = _procDumpExOptions.Exists(o => o is OptionHelp);
 
-			Log = _procDumpExOptions.Any(o => o is OptionLog);
+			Log = _procDumpExOptions.Exists(o => o is OptionLog);
 			if (Log)
 				_procDumpExOptions.RemoveAll(o => o is OptionLog);
 
-			_inf = _procDumpExOptions.Any(o => o is OptionInf);
+			_inf = _procDumpExOptions.Exists(o => o is OptionInf);
 			if (_inf)
 				_procDumpExOptions.RemoveAll(o => o is OptionInf);
 
-			_use64 = _procDumpExOptions.Any(o => o is Option64);
+			_use64 = _procDumpExOptions.Exists(o => o is Option64);
 			if (_use64)
 				_procDumpExOptions.RemoveAll(o => o is Option64);
 
-			_showoutput = _procDumpExOptions.Any(o => o is OptionShowOutput);
+			_showoutput = _procDumpExOptions.Exists(o => o is OptionShowOutput);
 			if (_showoutput)
 				_procDumpExOptions.RemoveAll(o => o is OptionShowOutput);
 
-			OptionCfg =	_procDumpExOptions.FirstOrDefault(o => o is OptionCfg) as OptionCfg;
+			OptionCfg =	_procDumpExOptions.Find(o => o is OptionCfg) as OptionCfg;
 
-			if (!_procDumpExOptions.Any(o => o is OptionW) && OptionCfg is null)
+			if (!_procDumpExOptions.Exists(o => o is OptionW) && OptionCfg is null)
 			{
 				//Since Wait (-w) is not used, we are only interested in the currently active processes with the name. So we can ignore the names at this point
 				foreach (var processName in processNames)
@@ -119,7 +119,7 @@ namespace ProcDumpEx
 
 			await Task.WhenAll(tasks);
 
-			if (_procDumpExOptions.Any(o => o is OptionW) || _inf)
+			if (_procDumpExOptions.Exists(o => o is OptionW) || _inf)
 				await _tcs.Task;
 		}
 
@@ -152,17 +152,6 @@ namespace ProcDumpEx
 			_executionProcDumpCommands.Add(string.Join(' ', _baseProcDumpCommand, command));
 		}
 
-		private async Task<bool> HelpAsync()
-		{
-			var option = _procDumpExOptions.FirstOrDefault(o => o is OptionHelp);
-
-			if (option is null)
-				return false;
-
-			await option.ExecuteAsync(this);
-			return true;
-		}
-
 		private static Process[] GetProcessesByName(string processName)
 		{
 			var processes = Process.GetProcessesByName(processName);
@@ -186,14 +175,14 @@ namespace ProcDumpEx
 				StringBuilder sb = new();
 				sb.Append($"Currently there is no process with the name {processName} running.");
 
-				if (_procDumpExOptions.Any(o => o is OptionW))
+				if (_procDumpExOptions.Exists(o => o is OptionW))
 					sb.Append(" ProcDumpEx is idle for this process name until a new process instance is started");
 				else
 				{
 					sb.Append(" The execution for this process name is terminated.");
 				}
 				
-				ConsoleEx.WriteInfo(sb.ToString(), LogId);
+				ConsoleEx.WriteLog(sb.ToString(), LogId, LogType.Info);
 				return;
 			}
 
@@ -224,7 +213,7 @@ namespace ProcDumpEx
 			}
 			catch (Exception e) when (e is (ArgumentException or InvalidOperationException or ProcessNotFoundException))
 			{
-				ConsoleEx.WriteInfo($"Currently no process is running with the id: {processId}. Execution for this process id is finished", LogId);
+				ConsoleEx.WriteLog($"Currently no process is running with the id: {processId}. Execution for this process id is finished", LogId, LogType.Info);
 				InfRemoveProcessIdentifier(processId);
 			}
 		}
@@ -257,20 +246,20 @@ namespace ProcDumpEx
 			}
 			catch (ProcDumpFileMissingException e)
 			{
-				ConsoleEx.WriteError(e.Message, LogId);
+				ConsoleEx.WriteLog(e.Message, LogId, LogType.Error);
 				Stop();
 				return;
 			}
 			catch (GetArchitectureException)
 			{
 				Stop();
-				ConsoleEx.WriteError("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters", LogId);
+				ConsoleEx.WriteLog("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters", LogId, LogType.Error);
 				return;
 			}
 			catch (InvalidProcessorArchitecture e)
 			{
 				Stop();
-				ConsoleEx.WriteError(e.Message, LogId);
+				ConsoleEx.WriteLog(e.Message, LogId, LogType.Error);
 				return;
 			}
 
@@ -295,9 +284,9 @@ namespace ProcDumpEx
 
 				//Check if procdump output contains help string
 				if (output.Contains("Use -? -e to see example command lines."))
-					ConsoleEx.WriteError("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.", LogId);
+					ConsoleEx.WriteLog("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.", LogId, LogType.Error);
 
-				_processManager.RemoveMonitoredProcess(process.Id, argument, procDumpInfo, !_inf && _procDumpExOptions.Any(o => o is OptionW), output.Contains("Dump count reached"), LogId);
+				_processManager.RemoveMonitoredProcess(process.Id, argument, procDumpInfo, !_inf && _procDumpExOptions.Exists(o => o is OptionW), output.Contains("Dump count reached"), LogId);
 			}
 		}
 
@@ -331,7 +320,7 @@ namespace ProcDumpEx
 		private void InfRemoveProcessIdentifier(int processId)
 		{
 			//If parameter -w is used, inf will be reused at the start of the specified process
-			if (_procDumpExOptions.Any(o => o is OptionW))
+			if (_procDumpExOptions.Exists(o => o is OptionW))
 				return;
 
 			//Only used if parameter -inf is set

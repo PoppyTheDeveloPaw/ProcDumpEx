@@ -2,148 +2,254 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace ProcDumpEx
+namespace ProcDumpEx;
+
+internal enum LogType
 {
-	internal static class ConsoleEx
+	Info,
+	Error,
+	Success,
+	Failure,
+	Normal,
+	ShutdownLog,
+	ProcDump
+}
+
+internal static partial class ConsoleEx
+{
+	private static readonly List<string> _log = [];
+	private static readonly object _colorLock = new();
+	private static readonly object _lockObject = new();
+
+	[LibraryImport("kernel32.dll", SetLastError = true)]
+	private static partial IntPtr GetStdHandle(int nStdHandle);
+
+	[LibraryImport("kernel32.dll")]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	private static partial bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+	[LibraryImport("kernel32.dll")]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	private static partial bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+	/// <summary>
+	/// Returns the console color for the given log type.
+	/// </summary>
+	/// <param name="logType"></param>
+	/// <returns></returns>
+	private static ConsoleColor GetConsoleColor(LogType logType) => logType switch
 	{
-		private static List<string> _log = new List<string>();
+		LogType.Info => ConsoleColor.Blue,
+		LogType.Error => ConsoleColor.Red,
+		LogType.Success => ConsoleColor.Green,
+		LogType.Failure => ConsoleColor.DarkYellow,
+		LogType.ShutdownLog => ConsoleColor.DarkMagenta,
+		LogType.ProcDump => ConsoleColor.Cyan,
+		_ => ConsoleColor.White
+	};
 
-		const int STD_OUTPUT_HANDLE = -11;
-		const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
+	/// <summary>
+	/// Writes the given exception to the console and adds it into the log.
+	/// </summary>
+	/// <param name="errorMessage"></param>
+	/// <param name="e"></param>
+	/// <param name="logId"></param>
+	public static void WriteException(string errorMessage, Exception e, string logId)
+	{
+		StringBuilder sbErrorMessage = new();
 
-		[DllImport("kernel32.dll", SetLastError = true)]
-		static extern IntPtr GetStdHandle(int nStdHandle);
+		sbErrorMessage.AppendLine(errorMessage);
 
-		[DllImport("kernel32.dll")]
-		static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+		if (!(errorMessage.EndsWith('.') || errorMessage.EndsWith('?') || errorMessage.EndsWith('!')))
+			sbErrorMessage.Append('.');
 
-		[DllImport("kernel32.dll")]
-		static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+		StringBuilder sb = new();
+		sb.AppendLine(sbErrorMessage.ToString());
 
-		public static void WriteInfo(string infoMessage, string logId) => WriteColor(infoMessage, ConsoleColor.Blue, logId);
+		sb.Append($"Exception: {e}. Inner exception: {e.InnerException}");
 
-		public static void WriteError(string errorMessage, string logId) => WriteColor(errorMessage, ConsoleColor.Red, logId);
+		WriteLog(sb.ToString(), logId, LogType.Error);
+	}
 
-		public static void WriteSuccess(string message, string logId) => WriteColor(message, ConsoleColor.Green, logId);
+	/// <summary>
+	/// Writes an empty line.
+	/// </summary>
+	public static void WriteEmptyLine() => WriteLog(string.Empty);
 
-		public static void WriteFailure(string message, string logId) => WriteColor(message, ConsoleColor.DarkYellow, logId);
+	/// <summary>
+	/// Adds the given log message to the console and the log.
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="logId"></param>
+	/// <param name="logType"></param>
+	/// <param name="writeLog"></param>
+	/// <param name="writeConsole"></param>
+	public static void WriteLog(string message, string? logId = null, LogType logType = LogType.Normal, bool writeLog = true, bool writeConsole = true) =>
+		ExecuteLog(GetLogMessage(message, logId), GetConsoleColor(logType), logType, writeLog, writeConsole);
 
-
-
-		private static object _colorLock = new object();
-		public static void WriteColor(string message, ConsoleColor color)
+	/// <summary>
+	/// Creates the log message.
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="logId"></param>
+	/// <returns></returns>
+	private static string GetLogMessage(string message, string? logId)
+	{
+		if (string.IsNullOrWhiteSpace(message))
 		{
-			lock (_colorLock)
+			return message;
+		}
+
+		return AddPrefixToLines(message, GetPrefixString(logId));
+	}
+
+	/// <summary>
+	/// Adds the given prefix to the log message
+	/// </summary>
+	/// <param name="input"></param>
+	/// <param name="prefix"></param>
+	/// <returns></returns>
+	private static string AddPrefixToLines(string input, string prefix)
+	{
+		string[] lines = input.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+
+		StringBuilder sb = new();
+		foreach (string line in lines)
+		{
+			sb.Append(prefix);
+			sb.AppendLine(line);
+		}
+
+		return sb.ToString();
+	}
+
+	/// <summary>
+	/// Creates the prefix [time][log id]
+	/// </summary>
+	/// <param name="logId"></param>
+	/// <returns></returns>
+	private static string GetPrefixString(string? logId)
+	{
+		StringBuilder sb = new();
+		sb.Append($"[{DateTime.Now.ToString("G", CultureInfo.GetCultureInfo("de-DE"))}]");
+		if (!string.IsNullOrWhiteSpace(logId))
+		{
+			sb.Append($"[{logId}]");
+		}
+		sb.Append(": ");
+		return sb.ToString();
+	}
+
+	/// <summary>
+	/// Writes the message into the log and to the console.
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="color"></param>
+	/// <param name="logType"></param>
+	/// <param name="writeLog"></param>
+	/// <param name="writeConsole"></param>
+	private static void ExecuteLog(string message, ConsoleColor color, LogType logType, bool writeLog, bool writeConsole)
+	{
+		void Execute()
+		{
+			if (writeLog)
 			{
-				Console.ForegroundColor = color;
-				WriteLine(message);
-				Console.ResetColor();
+				AddToLog(message, logType);
+			}
+			if (writeConsole)
+			{
+				Console.WriteLine(message);
 			}
 		}
 
-		public static void WriteColor(string message, ConsoleColor color, string logId)
+		if (string.IsNullOrWhiteSpace(message))
 		{
-			string outputMessage = $"{GetIdTime(logId)}{message}";
-			WriteColor(outputMessage, color);
+			// Empty line needs no color change
+			Execute();
+			return;
 		}
 
-		public static void Write(string message, string logId)
+		lock (_colorLock)
 		{
-			string outputMessage = $"{GetIdTime(logId)}{message}";
-			_log.Add(outputMessage);
-			Console.Write(outputMessage);
+			Console.ForegroundColor = color;
+			Execute();
+			Console.ResetColor();
 		}
+	}
 
-		public static void WriteLine(string message, string logId)
-		{
-			string outputMessage = $"{GetIdTime(logId)}{message}";
-			_log.Add(outputMessage);
-			Console.WriteLine(outputMessage);
-		}
-
-		public static void WriteLine(string message)
+	/// <summary>
+	/// Adds the message into the log.
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="logType"></param>
+	private static void AddToLog(string message, LogType logType)
+	{
+		if (string.IsNullOrWhiteSpace(message))
 		{
 			_log.Add(message);
-			Console.WriteLine(message);
 		}
-
-		public static void WriteLine()
+		else
 		{
-			string outputMessage = string.Empty;
-			_log.Add(outputMessage);
-			Console.WriteLine(outputMessage);
+			string logMsg = message.Replace(Constants.StartUnderline, string.Empty).Replace(Constants.EndUnderline, string.Empty);
+			_log.Add(AddPrefixToLines(logMsg, $"[{Enum.GetName(logType)}]"));
 		}
+	}
 
-		public static void WriteLogFile(string logId) 
+	/// <summary>
+	/// Writes the log into an logfile
+	/// </summary>
+	/// <param name="logId"></param>
+	public static void WriteLogFile(string logId)
+	{
+		string fileName = $"Log_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+		File.WriteAllLines(
+			fileName,
+			_log.Select(x => x.Replace(Constants.StartUnderline, string.Empty).Replace(Constants.EndUnderline, string.Empty)));
+
+		WriteLog($"Log file saved with the name {fileName}", logId, LogType.ShutdownLog);
+	}
+
+	/// <summary>
+	/// Writes the test underlined to the console.
+	/// </summary>
+	/// <param name="s"></param>
+	/// <param name="logId"></param>
+	public static void WriteUnderline(string s, string logId)
+	{
+		var handle = GetStdHandle(Constants.StdOutputHandle);
+		GetConsoleMode(handle, out uint mode);
+		mode |= Constants.EnableVirtualTerminalProcessing;
+		SetConsoleMode(handle, mode);
+
+		WriteLog($"{Constants.StartUnderline}{s}{Constants.EndUnderline}", logId);
+	}
+
+	/// <summary>
+	/// Prints the procdump output to the console and the log.
+	/// </summary>
+	/// <param name="info"></param>
+	/// <param name="output"></param>
+	/// <param name="logId"></param>
+	/// <param name="onlyLog"></param>
+	public static void PrintOutput(ProcDumpInfo info, string[] output, string logId, bool onlyLog = false)
+	{
+		lock (_lockObject)
 		{
-			string fileName = $"Log_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.txt";
-			File.WriteAllLines(fileName, _log.Select(x => x.Replace(StartUnderline, "").Replace(EndUnderline, "")));
-			ConsoleEx.WriteColor($"Log file saved with the name {fileName}", ConsoleColor.DarkMagenta, logId);
-		}
-
-		private static string GetIdTime(string logId) => $"[{logId}][{GetTimeNow()}]: ";
-
-		private static string GetTimeNow() => DateTime.Now.ToString("G", CultureInfo.GetCultureInfo("de-DE"));
-
-		public static void WriteError(string errorMessage, Exception e, string logId)
-		{
-			StringBuilder sbErrorMessage = new StringBuilder();
-
-			sbErrorMessage.AppendLine(errorMessage);
-
-			if (!(errorMessage.EndsWith('.') || errorMessage.EndsWith('?') || errorMessage.EndsWith('!')))
-				sbErrorMessage.Append('.');
-
-			StringBuilder sb = new StringBuilder();
-			sb.AppendLine(sbErrorMessage.ToString());
-
-			sb.Append($"Exception: {e}");
-
-			WriteColor(sb.ToString(), ConsoleColor.Red, logId);
-		}
-
-		private const string StartUnderline = "\x1B[4m";
-		private const string EndUnderline = "\x1B[24m";
-
-		public static void WriteUnderline(string s, string logId)
-		{
-			var handle = GetStdHandle(STD_OUTPUT_HANDLE);
-			uint mode;
-			GetConsoleMode(handle, out mode);
-			mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+			var handle = GetStdHandle(Constants.StdOutputHandle);
+			GetConsoleMode(handle, out uint mode);
+			mode |= Constants.EnableVirtualTerminalProcessing;
 			SetConsoleMode(handle, mode);
-			WriteLine($"{StartUnderline}{s}{EndUnderline}", logId);
-		}
+			string firstLine = $"Output of {info.UsedProcDumpFileName} / Process logId: {info.ProcDumpProcessId}. Examined Process: {info.ExaminedProcessName}";
 
-		private static object _lockObject = new object();
-		public static void PrintOutput(ProcDumpInfo info, string[] output, string logId, bool onlyLog = false)
-		{
-			lock (_lockObject)
+			StringBuilder sb = new();
+			sb.AppendLine($"{Constants.StartUnderline}{firstLine}{Constants.EndUnderline}");
+
+			foreach (var line in output)
 			{
-				var handle = GetStdHandle(STD_OUTPUT_HANDLE);
-				uint mode;
-				GetConsoleMode(handle, out mode);
-				mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-				SetConsoleMode(handle, mode);
-				string firstLine = $"Output of {info.UsedProcDumpFileName} / Process logId: {info.ProcDumpProcessId}. Examined Process: {info.ExaminedProcessName}";
-
-				string dateTime = GetIdTime(logId);
-				StringBuilder sb = new StringBuilder();
-
-				sb.AppendLine($"{dateTime}{StartUnderline}{firstLine}{EndUnderline}");
-
-				foreach (var line in output)
-				{
-					sb.AppendLine($"{dateTime}{line}");
-				}
-
-				_log.Add(sb.ToString());
-
-				if (onlyLog)
-					return;
-
-				WriteColor(sb.ToString(), ConsoleColor.Cyan);
+				sb.AppendLine($"{line}");
 			}
+
+			WriteLog(sb.ToString(), logId, LogType.ProcDump, writeConsole: !onlyLog);
 		}
 	}
 }
