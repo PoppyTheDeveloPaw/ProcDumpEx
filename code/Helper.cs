@@ -25,17 +25,17 @@ namespace ProcDumpEx
 		internal static bool GetValueExpected(this Type type) => GetOptionAttribute(type).ValueExpected;
 		internal static string[] GetDescription(this Type type)
 		{
-			string filePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Description\\{type.Name}_Description.txt"));
+			string filePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Description", $"{type.Name}_Description.txt"));
 
 			if (!File.Exists(filePath))
-				return new string[] { $"Description file for parameter \"{type.GetOption()}\" not available. Expected under {filePath}" };
+				return [$"Description file for parameter \"{type.GetOption()}\" not available. Expected under {filePath}"];
 
 			var descContent = File.ReadAllLines(filePath);
 
 			if (descContent.Any(o => !string.IsNullOrEmpty(o)))
 				return descContent;
 
-			return new string[] { $"The description file {filePath} exists but is empty" };
+			return [$"The description file {filePath} exists but is empty"];
 		}
 
 		internal static OptionAttribute GetOptionAttribute(this Type type) => (OptionAttribute)type.GetCustomAttribute(typeof(OptionAttribute))!;
@@ -58,8 +58,8 @@ namespace ProcDumpEx
 			string relativeFilePath = @$".\{procDumpInfo.FileName}";
 			string relativeFolderPath = @$".\{procDumpInfo.FolderName}\{procDumpInfo.FileName}";
 
-			string absoluteFilePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), relativeFilePath));
-			string absoluteFolderPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), relativeFolderPath));
+			string absoluteFilePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativeFilePath));
+			string absoluteFolderPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativeFolderPath));
 
 			if (File.Exists(absoluteFolderPath))
 				return absoluteFolderPath;
@@ -148,7 +148,7 @@ namespace ProcDumpEx
 
 				string? value = Console.ReadLine();
 
-				if (!string.IsNullOrEmpty(value) && value.ToLower() != "y")
+				if (!string.IsNullOrEmpty(value) && string.Equals(value, "y", StringComparison.OrdinalIgnoreCase))
 				{
 					ConsoleEx.WriteError("By entering anything other than \"y\" you have not agreed to ProcDump's End User License Agreement (EULA). ProcDumpEx is terminated.", "Helper");
 					return false;

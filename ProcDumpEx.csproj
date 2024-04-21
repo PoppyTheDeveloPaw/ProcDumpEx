@@ -7,12 +7,6 @@
 		<Nullable>enable</Nullable>
 		<RunPostBuildEvent>Always</RunPostBuildEvent>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
-		<AssemblyVersion>1.2.0.3</AssemblyVersion>
-		<InformationalVersion>1.2.0.3-Beta</InformationalVersion>
-		<Authors>Alexander Peipp;Daniel Eichner</Authors>
-		<Copyright>Alexander Peipp;Daniel Eichner</Copyright>
-		<BaseOutputPath>.\out\bin</BaseOutputPath>
-		<BaseIntermediateOutputPath>.\out\obj</BaseIntermediateOutputPath>
 	</PropertyGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
@@ -39,6 +33,15 @@
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)README.md&quot; &quot;$(TargetDir)&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)LICENSE&quot; &quot;$(TargetDir)&quot;" />
 	</Target>
+
+	<ItemGroup>
+	  <Compile Remove="obj\**" />
+	  <Compile Remove="out\**" />
+	  <EmbeddedResource Remove="obj\**" />
+	  <EmbeddedResource Remove="out\**" />
+	  <None Remove="obj\**" />
+	  <None Remove="out\**" />
+	</ItemGroup>
 	
 	<ItemGroup>
 		<PackageReference Include="Gapotchenko.FX.Diagnostics.Process" Version="2022.2.7" />
