@@ -2,28 +2,29 @@
 {
 	internal record Constants
 	{
-		internal const string ProcDumpFileName = "procdump.exe";
-		internal const string ProcDump64FileName = "procdump64.exe";
-		internal const string ProcDump64aFileName = "procdump64a.exe";
+		private const string _procDumpFileName = "procdump.exe";
+		private const string _procDumpFolderName = "Procdump";
 
-		internal const string RelativeProcdumpFolderPath = @$".\Procdump\{ProcDumpFileName}";
-		internal const string RelativeProcdumpPath = @$".\{ProcDumpFileName}";
+		private const string _procDump64FileName = "procdump64.exe";
+		private const string _procDump64FolderName = "Procdump64";
 
-		internal const string RelativeProcdump64FolderPath = @$".\Procdump64\{ProcDump64FileName}";
-		internal const string RelativeProcdump64Path = @$".\{ProcDump64FileName}";
-
-		internal const string RelativeProcdump64aFolderPath = @$".\Procdump64a\{ProcDump64aFileName}";
-		internal const string RelativeProcdump64aPath = @$".\{ProcDump64aFileName}";
-
-		internal static string FullProcdump64Path = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), RelativeProcdump64Path));
-		internal static string FullProcdump64FolderPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), RelativeProcdump64FolderPath));
-
-		internal static string FullProcdumpPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), RelativeProcdumpPath));
-		internal static string FullProcdumpFolderPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), RelativeProcdumpFolderPath));
-
-		internal static string FullProcdump64aPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), RelativeProcdump64aPath));
-		internal static string FullProcdump64aFolderPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), RelativeProcdump64aFolderPath));
+		private const string _procDump64aFileName = "procdump64a.exe";
+		private const string _procDump64aFolderName = "Procdump64a";
 
 		internal static string ProcessPlaceholder = "[ProcessPlaceholder]";
+
+		internal static IReadOnlyDictionary<ProcDumpVersion, (string FileName, string FolderName)> ProcDumpDict = new Dictionary<ProcDumpVersion, (string FileName, string FolderName)>()
+		{
+			{ ProcDumpVersion.ProcDump, (_procDumpFileName, _procDumpFolderName) },
+			{ ProcDumpVersion.ProcDump64, (_procDump64FileName, _procDump64FolderName) },
+			{ ProcDumpVersion.ProcDump64a, (_procDump64aFileName, _procDump64aFolderName) },
+		};
+	}
+
+	enum ProcDumpVersion
+	{
+		ProcDump,
+		ProcDump64,
+		ProcDump64a
 	}
 }

@@ -1,0 +1,10 @@
+<Project>
+    <PropertyGroup>
+		<AssemblyVersion>1.2.0.3</AssemblyVersion>
+		<InformationalVersion>1.2.0.3-Beta</InformationalVersion>
+		<Authors>Alexander Peipp;Daniel Eichner</Authors>
+		<Copyright>Alexander Peipp;Daniel Eichner</Copyright>
+		<BaseOutputPath>.\out\bin</BaseOutputPath>
+		<BaseIntermediateOutputPath>.\out\obj</BaseIntermediateOutputPath>
+    </PropertyGroup>
+</Project>

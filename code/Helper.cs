@@ -2,6 +2,7 @@
 using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Reflection;
 using System.Security.Principal;
@@ -10,6 +11,11 @@ namespace ProcDumpEx
 {
 	internal static class Helper
 	{
+		/// <summary>
+		/// Get all types with option attributes.
+		/// </summary>
+		/// <param name="assembly"></param>
+		/// <returns></returns>
 		internal static IEnumerable<Type> GetTypesWithOptionAttribute(Assembly assembly)
 		{
 			foreach (Type type in assembly.GetTypes())
@@ -21,73 +27,81 @@ namespace ProcDumpEx
 			}
 		}
 
+		/// <summary>
+		/// Get option from type
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		internal static string GetOption(this Type type) => GetOptionAttribute(type).Option;
+		
+		/// <summary>
+		/// Returns if an value is expected for the given type
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		internal static bool GetValueExpected(this Type type) => GetOptionAttribute(type).ValueExpected;
+		
+		/// <summary>
+		/// Returns the description of the type.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		internal static string[] GetDescription(this Type type)
 		{
-			string filePath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Description\\{type.Name}_Description.txt"));
+			string filePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Description", $"{type.Name}_Description.txt"));
 
 			if (!File.Exists(filePath))
-				return new string[] { $"Description file for parameter \"{type.GetOption()}\" not available. Expected under {filePath}" };
+				return [$"Description file for parameter \"{type.GetOption()}\" not available. Expected under {filePath}"];
 
 			var descContent = File.ReadAllLines(filePath);
 
 			if (descContent.Any(o => !string.IsNullOrEmpty(o)))
 				return descContent;
 
-			return new string[] { $"The description file {filePath} exists but is empty" };
+			return [$"The description file {filePath} exists but is empty"];
 		}
 
+		/// <summary>
+		/// Returns the option attribute for the given type.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
 		internal static OptionAttribute GetOptionAttribute(this Type type) => (OptionAttribute)type.GetCustomAttribute(typeof(OptionAttribute))!;
 
 		/// <summary>
-		/// Returns the path of the procdump64.exe file if exists, otherwise throws an <see cref="ProcDumpFileMissingException"/>
+		/// Checks if the given procdump file exists and returns it in good case, if not an exception is thrown
 		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="ProcDumpFileMissingException"></exception>
-		internal static string GetExistingProcDump64Path()
+		/// <param name="fileName">Name of the procdump file.</param>
+		/// <param name="folderName">Name of the folder in which the procdump file could be located</param>
+		/// <returns>Path of the given ProcDump file if it exists</returns>
+		/// <exception cref="ProcDumpFileMissingException">Is thrown if file not found.</exception>
+		internal static string GetExistingProcDumpPath(ProcDumpVersion procDump)
 		{
-			if (File.Exists(Constants.FullProcdump64FolderPath))
-				return Constants.FullProcdump64FolderPath;
+			if (!Constants.ProcDumpDict.TryGetValue(procDump, out var procDumpInfo))
+			{
+				// Should never happen
+				throw new ArgumentException("Given parameter is unknown", nameof(procDump));
+			}
 
-			if (File.Exists(Constants.FullProcdump64Path))
-				return Constants.FullProcdump64Path;
+			string relativeFilePath = @$".\{procDumpInfo.FileName}";
+			string relativeFolderPath = @$".\{procDumpInfo.FolderName}\{procDumpInfo.FileName}";
 
-			throw new ProcDumpFileMissingException(Constants.ProcDump64FileName, Constants.FullProcdump64FolderPath, Constants.FullProcdump64Path);
+			string absoluteFilePath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativeFilePath));
+			string absoluteFolderPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativeFolderPath));
+
+			if (File.Exists(absoluteFolderPath))
+				return absoluteFolderPath;
+
+			if (File.Exists(absoluteFilePath))
+				return absoluteFilePath;
+
+			throw new ProcDumpFileMissingException(procDumpInfo.FileName, absoluteFolderPath, absoluteFilePath);
 		}
 
 		/// <summary>
-		/// Returns the path of the procdump.exe file if exists, otherwise throws an <see cref="ProcDumpFileMissingException"/>
+		/// Check if running with administrator privileges
 		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="ProcDumpFileMissingException"></exception>
-		internal static string GetExistingProcDumpPath()
-		{
-			if (File.Exists(Constants.FullProcdumpFolderPath))
-				return Constants.FullProcdumpFolderPath;
-
-			if (File.Exists(Constants.FullProcdumpPath))
-				return Constants.FullProcdumpPath;
-
-			throw new ProcDumpFileMissingException(Constants.ProcDumpFileName, Constants.FullProcdumpFolderPath, Constants.FullProcdumpPath);
-		}
-
-		/// <summary>
-		/// Returns the path of the procdump.exe file if exists, otherwise throws an <see cref="ProcDumpFileMissingException"/>
-		/// </summary>
-		/// <returns></returns>
-		/// <exception cref="ProcDumpFileMissingException"></exception>
-		internal static string GetExistingProcDump64aPath()
-		{
-			if (File.Exists(Constants.FullProcdump64aFolderPath))
-				return Constants.FullProcdump64aFolderPath;
-
-			if (File.Exists(Constants.FullProcdump64aPath))
-				return Constants.FullProcdump64aPath;
-
-			throw new ProcDumpFileMissingException(Constants.ProcDump64aFileName, Constants.FullProcdump64aFolderPath, Constants.FullProcdump64aPath);
-		}
-
+		/// <returns>Returns <see langword="true"/> if the program is running with administrator privileges; otherwise <see langword="false"/>.</returns>
 		internal static bool CheckAdministratorPrivileges()
 		{
 			if (!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator))
@@ -98,13 +112,18 @@ namespace ProcDumpEx
 			return true;
 		}
 
+		/// <summary>
+		/// Checks if any of the procdump files (x32, x64, ARM64) is missing.
+		/// </summary>
+		/// <param name="logId">Caller id for logging.</param>
+		/// <returns>Returns <see langword="true"/> if all ProcDump files exists; otherwise <see langword="false"/>.</returns>
 		internal static bool IsProcdumpFileMissing(string logId)
 		{
 			bool procdumpFileMissing = false;
 
 			try
 			{
-				GetExistingProcDump64Path();
+				GetExistingProcDumpPath(ProcDumpVersion.ProcDump64);
 			}
 			catch (ProcDumpFileMissingException e)
 			{
@@ -114,7 +133,7 @@ namespace ProcDumpEx
 
 			try
 			{
-				GetExistingProcDumpPath();
+				GetExistingProcDumpPath(ProcDumpVersion.ProcDump);
 			}
 			catch (ProcDumpFileMissingException e)
 			{
@@ -124,7 +143,7 @@ namespace ProcDumpEx
 
 			try
 			{
-				GetExistingProcDump64aPath();
+				GetExistingProcDumpPath(ProcDumpVersion.ProcDump64a);
 			}
 			catch (ProcDumpFileMissingException e)
 			{
@@ -135,7 +154,15 @@ namespace ProcDumpEx
 			return procdumpFileMissing;
 		}
 
-		internal static bool TryGetValue<TValueType>(this PropertyDataCollection dataCollection, string propertyName, out TValueType? value)
+		/// <summary>
+		/// Try to get value from PropertyDataCollection
+		/// </summary>
+		/// <typeparam name="TValueType"></typeparam>
+		/// <param name="dataCollection"></param>
+		/// <param name="propertyName"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		internal static bool TryGetValue<TValueType>(this PropertyDataCollection dataCollection, string propertyName, [NotNullWhen(true)] out TValueType? value)
 		{
 			value = default;
 			foreach (var item in dataCollection)
@@ -153,6 +180,10 @@ namespace ProcDumpEx
 			return false;
 		}
 
+		/// <summary>
+		/// Check if EULA is accepted
+		/// </summary>
+		/// <returns></returns>
 		internal static bool CheckEula()
 		{
 			bool eulaAccepted = false;
@@ -166,7 +197,7 @@ namespace ProcDumpEx
 
 				string? value = Console.ReadLine();
 
-				if (!string.IsNullOrEmpty(value) && value.ToLower() != "y")
+				if (!string.IsNullOrEmpty(value) && string.Equals(value, "y", StringComparison.OrdinalIgnoreCase))
 				{
 					ConsoleEx.WriteError("By entering anything other than \"y\" you have not agreed to ProcDump's End User License Agreement (EULA). ProcDumpEx is terminated.", "Helper");
 					return false;
@@ -178,6 +209,10 @@ namespace ProcDumpEx
 			return true;
 		}
 
+		/// <summary>
+		/// Fix arguments
+		/// </summary>
+		/// <param name="args"></param>
 		internal static void FixArgs(string[] args)
 		{
 			for (int i = 0; i < args.Length; i++)

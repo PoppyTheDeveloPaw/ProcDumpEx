@@ -26,7 +26,7 @@ namespace ProcDumpEx
 
 		private readonly List<OptionBase> _procDumpExOptions;
 
-		private readonly TaskCompletionSource _tcs = new TaskCompletionSource();
+		private readonly TaskCompletionSource _tcs = new();
 
 		private List<string>? _executionProcDumpCommands;
 		private List<string> ExecutionProcDumpCommands
@@ -36,7 +36,7 @@ namespace ProcDumpEx
 				if (_executionProcDumpCommands is not null)
 					return _executionProcDumpCommands;
 
-				return new List<string> { _baseProcDumpCommand };
+				return [_baseProcDumpCommand];
 			}
 		}
 
@@ -108,7 +108,7 @@ namespace ProcDumpEx
 				}
 			}
 
-			List<Task> tasks = new List<Task>();
+			List<Task> tasks = [];
 
 			//Execute for already running processes
 			foreach (var processId in ProcessIds)
@@ -147,8 +147,7 @@ namespace ProcDumpEx
 
 		internal void AddProcDumpCommand(string command)
 		{
-			if (_executionProcDumpCommands is null)
-				_executionProcDumpCommands = new List<string>();
+			_executionProcDumpCommands ??= [];
 
 			_executionProcDumpCommands.Add(string.Join(' ', _baseProcDumpCommand, command));
 		}
@@ -164,11 +163,11 @@ namespace ProcDumpEx
 			return true;
 		}
 
-		private Process[] GetProcessesByName(string processName)
+		private static Process[] GetProcessesByName(string processName)
 		{
 			var processes = Process.GetProcessesByName(processName);
 
-			if (!processes.Any())
+			if (processes.Length == 0)
 				processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(processName));
 
 			return processes;
@@ -182,9 +181,9 @@ namespace ProcDumpEx
 		{
 			var processes = GetProcessesByName(processName);
 
-			if (!processes.Any())
+			if (processes.Length == 0)
 			{
-				StringBuilder sb = new StringBuilder();
+				StringBuilder sb = new();
 				sb.Append($"Currently there is no process with the name {processName} running.");
 
 				if (_procDumpExOptions.Any(o => o is OptionW))
@@ -198,7 +197,7 @@ namespace ProcDumpEx
 				return;
 			}
 
-			List<Task> tasks = new List<Task>();
+			List<Task> tasks = [];
 
 			foreach (var process in processes)
 				tasks.Add(StartAllProcDumpCommandsAsync(process));
@@ -208,7 +207,7 @@ namespace ProcDumpEx
 
 		private async Task StartAllProcDumpCommandsAsync(Process process)
 		{
-			List<Task> tasks = new List<Task>();
+			List<Task> tasks = [];
 
 			foreach (var argument in ExecutionProcDumpCommands)
 				tasks.Add(StartProcDumpAsync(process, argument));
@@ -277,7 +276,7 @@ namespace ProcDumpEx
 
 			if (Process.Start(info) is { } procdump)
 			{
-				ProcDumpInfo procDumpInfo = new ProcDumpInfo(info.FileName, procdump.Id, info.Arguments, process.ProcessName, process.Id);
+				ProcDumpInfo procDumpInfo = new(info.FileName, procdump.Id, info.Arguments, process.ProcessName, process.Id);
 
 				_processManager.AddNewMonitoredProcess(process.Id, argument, procdump, procDumpInfo, LogId);
 
@@ -309,12 +308,14 @@ namespace ProcDumpEx
 			{
 				case ProcessorArchitecture.x86:
 					if (_use64)
-						return Helper.GetExistingProcDump64Path();
-					return Helper.GetExistingProcDumpPath();
+					{
+						return Helper.GetExistingProcDumpPath(ProcDumpVersion.ProcDump64);
+					}
+					return Helper.GetExistingProcDumpPath(ProcDumpVersion.ProcDump);
 				case ProcessorArchitecture.AMD64 or ProcessorArchitecture.x64:
-					return Helper.GetExistingProcDump64Path();
+					return Helper.GetExistingProcDumpPath(ProcDumpVersion.ProcDump64);
 				case ProcessorArchitecture.ARM64:
-					return Helper.GetExistingProcDump64aPath();
+					return Helper.GetExistingProcDumpPath(ProcDumpVersion.ProcDump64a);
 			}
 
 			//Should never happen
@@ -339,12 +340,12 @@ namespace ProcDumpEx
 
 			ProcessIds.Remove(processId);
 
-			if (!ProcessIds.Any())
+			if (ProcessIds.Count == 0)
 				_tcs.TrySetResult();
 		}
 	}
 
-	internal struct ProcDumpInfo
+	internal readonly struct ProcDumpInfo
 	{
 		internal string UsedProcDumpFileName { get; }
 		internal int ProcDumpProcessId { get; }
