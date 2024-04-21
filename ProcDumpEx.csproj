@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net6.0-windows</TargetFramework>
+		<TargetFramework>net8.0-windows7.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<RunPostBuildEvent>Always</RunPostBuildEvent>
@@ -11,6 +11,8 @@
 		<InformationalVersion>1.2.0.3-Beta</InformationalVersion>
 		<Authors>Alexander Peipp;Daniel Eichner</Authors>
 		<Copyright>Alexander Peipp;Daniel Eichner</Copyright>
+		<BaseOutputPath>.\out\bin</BaseOutputPath>
+		<BaseIntermediateOutputPath>.\out\obj</BaseIntermediateOutputPath>
 	</PropertyGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
@@ -40,7 +42,7 @@
 	
 	<ItemGroup>
 		<PackageReference Include="Gapotchenko.FX.Diagnostics.Process" Version="2022.2.7" />
-		<PackageReference Include="System.Management" Version="7.0.0" />
-		<PackageReference Include="System.Reflection.MetadataLoadContext" Version="7.0.0" />
+		<PackageReference Include="System.Management" Version="8.0.0" />
+		<PackageReference Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
 	</ItemGroup>
 </Project>
