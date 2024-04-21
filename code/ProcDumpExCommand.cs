@@ -130,7 +130,7 @@ namespace ProcDumpEx
 
 			_stopCalled = true;
 			_inf = false;
-			_procDumpExOptions.FirstOrDefault(o => o is OptionW)?.StopExecution();
+			_procDumpExOptions.Find(o => o is OptionW)?.StopExecution();
 
 			if (_processManager.KillAll())
 			{

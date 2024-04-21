@@ -3,7 +3,7 @@
 namespace ProcDumpEx.Options
 {
 	[Option("-w", false)]
-	public class OptionW : OptionBase
+	public class OptionW : OptionBase, IDisposable
 	{
 		internal override bool IsCommandCreator => false;
 
@@ -13,7 +13,7 @@ namespace ProcDumpEx.Options
 		public OptionW()
 		{
 			_processWatcher = new ProcessWatcher();
-			_processWatcher.NewProcess += async (sender, e) => await ProcessWatcher_NewProcessAsync(sender, e);
+			_processWatcher.NewProcess += async (_, e) => await ProcessWatcher_NewProcessAsync(e);
 		}
 
 		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
@@ -34,9 +34,24 @@ namespace ProcDumpEx.Options
 
 		internal override void StopExecution()
 		{
-			_processWatcher.Stop();
+			Dispose();
 		}
 
-		private async Task ProcessWatcher_NewProcessAsync(object? sender, NewProcessEventArgs e) => await (_command?.ExecuteAsync(e.Process.Id) ?? Task.CompletedTask);
+		private async Task ProcessWatcher_NewProcessAsync(NewProcessEventArgs e) => await (_command?.ExecuteAsync(e.Process.Id) ?? Task.CompletedTask);
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				_processWatcher.Dispose();
+			}
+		}
+
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
+		}
 	}
 }
