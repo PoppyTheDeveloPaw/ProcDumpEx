@@ -1,10 +1,12 @@
-﻿using Microsoft.Win32;
+﻿using ByteSizeLib;
+using Microsoft.Win32;
 using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 
 namespace ProcDumpEx
@@ -240,6 +242,35 @@ namespace ProcDumpEx
 						args[i] = $"{args[i]}\"";
 				}
 			}
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		internal struct MemoryStatusEx
+		{
+			internal uint dwLength;
+			internal uint dwMemoryLoad;
+			internal ulong ullTotalPhys;
+			internal ulong ullAvailPhys;
+			internal ulong ullTotalPageFile;
+			internal ulong ullAvailPageFile;
+			internal ulong ullTotalVirtual;
+			internal ulong ullAvailVirtual;
+			internal ulong ullAvailExtendedVirtual;
+		}
+		[return: MarshalAs(UnmanagedType.Bool)]
+		[DllImport("Kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		static extern bool GlobalMemoryStatusEx([In, Out] MemoryStatusEx lpBuffer);
+
+		/// <summary>
+		/// Determines the maximum working memory and returns it in megabytes.
+		/// </summary>
+		/// <returns>Ram in mb</returns>
+		internal static double GetMaxRam()
+		{
+			MemoryStatusEx statEX = new();
+			GlobalMemoryStatusEx(statEX);
+
+			return ByteSize.FromBytes(statEX.ullTotalPhys).MegaBytes;
 		}
 	}
 }

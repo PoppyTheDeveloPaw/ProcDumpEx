@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Management;
+using System.Reflection;
 
 namespace ProcDumpEx.Options
 {
@@ -12,15 +13,17 @@ namespace ProcDumpEx.Options
 
 		public OptionMemthd(params string[] values)
 		{
+			double maxMemory = Helper.GetMaxRam();
+
 			List<int> memoryCommitThreshold = [];
 
 			foreach (var value in values)
 			{
 				GetType().GetCustomAttribute(typeof(OptionAttribute));
 
-				if (!int.TryParse(value, out int mb) || mb < 0)
+				if (!int.TryParse(value, out int mb) || mb < 0 || mb > maxMemory)
 				{
-					throw new ArgumentException($"{GetType().GetOption()} expects only positive numeric values");
+					throw new ArgumentException($"{GetType().GetOption()} expects only positive numeric values between 0 and {maxMemory}");
 				}
 
 				memoryCommitThreshold.Add(mb);
