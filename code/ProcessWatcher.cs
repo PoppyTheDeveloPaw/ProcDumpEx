@@ -37,6 +37,7 @@ namespace ProcDumpEx.code
 		{
 			lock ( _lockObject)
 			{
+				_managementEventWatcher.EventArrived -= EventArrived;
 				_managementEventWatcher.Stop();
 			}
 		}
