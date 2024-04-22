@@ -9,12 +9,14 @@
 
 		public OptionCputhdl(params string[] values)
 		{
-			List<int> cpuThreshold = new();
+			List<int> cpuThreshold = [];
 
 			foreach (var value in values)
 			{
-				if (!int.TryParse(value, out int mb) || mb < 0)
-					throw new ArgumentException($"{GetType().GetOption()} expects only positive numeric values");
+				if (!int.TryParse(value, out int mb) || mb is < 0 or > 100)
+				{
+					throw new ArgumentException($"{GetType().GetOption()} expects only positive numeric values between 0 and 100");
+				}
 
 				cpuThreshold.Add(mb);
 			}

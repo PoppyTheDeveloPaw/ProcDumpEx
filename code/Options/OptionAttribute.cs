@@ -2,15 +2,9 @@
 {
 
 	[AttributeUsage(AttributeTargets.Class, Inherited = false)]
-	public sealed class OptionAttribute : Attribute
+	public sealed class OptionAttribute(string option, bool valueExpected) : Attribute
 	{
-		internal string Option { get; set; }
-		internal bool ValueExpected { get; set; }
-
-		public OptionAttribute(string option, bool valueExpected) 
-		{
-			Option = option;
-			ValueExpected = valueExpected;
-		}
+		internal string Option => option;
+		internal bool ValueExpected => valueExpected;
 	}
 }

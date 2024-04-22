@@ -9,12 +9,14 @@
 
 		public OptionMemthdl(params string[] values)
 		{
-			List<int> memoryCommitThreshold = new();
+			List<int> memoryCommitThreshold = [];
 
 			foreach (var value in values)
 			{
 				if (!int.TryParse(value, out int mb) || mb < 0)
+				{
 					throw new ArgumentException($"{GetType().GetOption()} expects only positive numeric values");
+				}
 
 				memoryCommitThreshold.Add(mb);
 			}

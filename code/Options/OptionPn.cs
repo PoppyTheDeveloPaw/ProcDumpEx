@@ -1,15 +1,10 @@
 ﻿namespace ProcDumpEx.Options
 {
 	[Option("-pn", true)]
-	public class OptionPn : OptionBase
+	public class OptionPn(params string[] values) : OptionBase
 	{
-		internal IReadOnlyCollection<string> Processes;
+		internal IReadOnlyCollection<string> Processes => values;
 		internal override bool IsCommandCreator => false;
-
-		public OptionPn(params string[] values)
-		{
-			Processes = values;
-		}
 
 		/// <summary>
 		/// Is never called

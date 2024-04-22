@@ -29,13 +29,13 @@ namespace ProcDumpEx.Options
 				{
 					if (lines[i].StartsWith(toRemoveAtStart, StringComparison.OrdinalIgnoreCase))
 					{
-						lines[i] = lines[i].Substring(toRemoveAtStart.Length);
+						lines[i] = lines[i][toRemoveAtStart.Length..];
 					}
 				}
 
 				return lines;
 			}
-			return new string[0];
+			return [];
 		}
 
 		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
