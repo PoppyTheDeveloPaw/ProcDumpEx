@@ -6,7 +6,8 @@ namespace ProcDumpEx
 	{
 		internal event EventHandler<KeyPressed>? KeyPressedEvent;
 
-		private readonly Thread _thread;
+		private bool _run = true;
+		private static readonly object _lock = new();
 
 		private static KeyEvent? _singleton;
 		public static KeyEvent Instance
@@ -14,8 +15,12 @@ namespace ProcDumpEx
 			get
 			{
 				if (_singleton is null)
-					_singleton = new KeyEvent();
-
+				{
+					lock (_lock)
+					{
+						_singleton ??= new KeyEvent();
+					}
+				}
 				return _singleton;
 			}
 		}
@@ -25,10 +30,14 @@ namespace ProcDumpEx
 			Console.CancelKeyPress += Console_CancelKeyPress;
 
 			//Thread to detect if X was pressed
-			_thread = new Thread(ThreadMethod);
-			_thread.IsBackground = true;
-			_thread.Start();
+			var thread = new Thread(ThreadMethod)
+			{
+				IsBackground = true
+			};
+			thread.Start();
 		}
+
+		public void Stop() => _run = false;
 
 		private void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
 		{
@@ -47,7 +56,7 @@ namespace ProcDumpEx
 
 		private void ThreadMethod()
 		{
-			while (true)
+			while (_run)
 			{
 				if (Console.ReadKey(true).Key == ConsoleKey.X)
 				{
@@ -62,14 +71,5 @@ namespace ProcDumpEx
 		Ctrl_C,
 		Ctrl_Break,
 		X
-	}
-
-	enum CtrlType
-	{
-		CTRL_C_EVENT = 0,
-		CTRL_BREAK_EVENT = 1,
-		CTRL_CLOSE_EVENT = 2,
-		CTRL_LOGOFF_EVENT = 5,
-		CTRL_SHUTDOWN_EVENT = 6
 	}
 }
