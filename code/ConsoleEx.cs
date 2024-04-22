@@ -199,7 +199,7 @@ internal static partial class ConsoleEx
 	/// Writes the log into an logfile
 	/// </summary>
 	/// <param name="logId"></param>
-	public static void WriteLogFile(string logId)
+	public static void SaveLogFile(string logId)
 	{
 		string fileName = $"Log_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
 		File.WriteAllLines(
