@@ -1,13 +1,7 @@
 ﻿namespace ProcDumpEx.Exceptions
 {
-	[Serializable]
-    internal class DuplicateOptionsException : Exception
+    public class DuplicateOptionsException(IEnumerable<string> duplicateKeys) : Exception
     {
-        internal IEnumerable<string> DuplicateKeys { get; }
-
-        public DuplicateOptionsException(IEnumerable<string> duplicateKeys)
-        {
-            DuplicateKeys = duplicateKeys;
-        }
+        internal IEnumerable<string> DuplicateKeys => duplicateKeys;
     }
 }

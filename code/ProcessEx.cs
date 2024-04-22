@@ -41,7 +41,7 @@ namespace ProcDumpEx
 		}
 	}
 
-	enum ProcessorArchitecture
+	public enum ProcessorArchitecture
 	{
 		x86,
 		AMD64,
@@ -49,6 +49,4 @@ namespace ProcDumpEx
 		ARM,
 		ARM64,
 	}
-
-
 }

@@ -256,7 +256,7 @@ namespace ProcDumpEx
 				ConsoleEx.WriteLog("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters", LogId, LogType.Error);
 				return;
 			}
-			catch (InvalidProcessorArchitecture e)
+			catch (InvalidProcessorArchitectureException e)
 			{
 				Stop();
 				ConsoleEx.WriteLog(e.Message, LogId, LogType.Error);
@@ -308,7 +308,7 @@ namespace ProcDumpEx
 			}
 
 			//Should never happen
-			throw new InvalidProcessorArchitecture(architecture, process);
+			throw new InvalidProcessorArchitectureException(architecture, process);
 		}
         
 		private async Task ProcessManager_ProcDumpProcessTerminatedAsync(ProcDumpInfo e)
