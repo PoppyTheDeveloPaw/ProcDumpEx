@@ -28,7 +28,8 @@ namespace ProcDumpEx.Options
 					}
 				}
 
-				return lines;
+				//ignore comments
+				return lines.Where(x => !x.StartsWith("//") && !x.StartsWith('#')).ToArray();
 			}
 			return [];
 		}
