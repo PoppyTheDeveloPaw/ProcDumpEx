@@ -10,16 +10,31 @@ namespace ProcDumpEx.Options
 		private readonly ProcessWatcher _processWatcher;
 		private ProcDumpExCommand? _command;
 
+		private string? _logId;
+
 		public OptionW()
 		{
 			_processWatcher = new ProcessWatcher();
-			_processWatcher.NewProcess += async (_, e) => await ProcessWatcher_NewProcessAsync(e);
+			_processWatcher.NewProcess += ProcessWatcher_NewProcess;
+		}
+
+		private async void ProcessWatcher_NewProcess(object? _, NewProcessEventArgs e)
+		{
+			ConsoleEx.WriteLog($"New process '{e.Process.ProcessName}' ({e.Process.Id}) started.", _logId, LogType.Info);
+
+			if (_command is null)
+			{
+				return;
+			}
+
+			await _command.ExecuteAsync(e.Process.Id);
 		}
 
 		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
 		{
 			ConsoleEx.WriteLog($"Until ProcDumpEx is terminated, it waits for new instances of the specified process names ({string.Join(", ", command.ProcessNames)}). For newly started process instances ProcDump is executed with the specified parameters", command.LogId, LogType.Info);
 			_command = command;
+			_logId = command.LogId;
 			try
 			{
 				_processWatcher.Start(command.ProcessNames);
@@ -34,10 +49,9 @@ namespace ProcDumpEx.Options
 
 		internal override void StopExecution()
 		{
+			ConsoleEx.WriteLog("Execution of command '-w' is terminated.", _logId, LogType.Info);
 			Dispose();
 		}
-
-		private async Task ProcessWatcher_NewProcessAsync(NewProcessEventArgs e) => await (_command?.ExecuteAsync(e.Process.Id) ?? Task.CompletedTask);
 
 		protected virtual void Dispose(bool disposing)
 		{
