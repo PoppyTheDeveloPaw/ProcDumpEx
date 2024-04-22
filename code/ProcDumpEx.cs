@@ -7,6 +7,7 @@ internal class ProcDumpEx
 	private readonly ProcDumpExCommand[] _commands;
 
 	private bool _stoppedManually = false;
+	private bool _subscribed = false;
 
 	public ProcDumpEx(ProcDumpExCommand[] commands)
 	{
@@ -65,10 +66,10 @@ internal class ProcDumpEx
 
 			if (!_stoppedManually)
 			{
-				UnsubscribeEvents();
 				ConsoleEx.WriteLog("ProcDumpEx was terminated after everything was done", "Base", LogType.ShutdownLog);
 			}
 		}
+		UnsubscribeEvents();
 
 		if (Array.Exists(_commands, o => o.Log))
 		{
@@ -78,12 +79,22 @@ internal class ProcDumpEx
 
 	private void SubscribeEvents()
 	{
+		if (_subscribed)
+		{
+			return;
+		}
+		_subscribed = true;
 		KeyEvent.Instance.KeyPressedEvent += Instance_KeyPressedEvent;
 		AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
 	}
 
 	private void UnsubscribeEvents()
 	{
+		if (!_subscribed)
+		{
+			return;
+		}
+		_subscribed = false;
 		KeyEvent.Instance.KeyPressedEvent -= Instance_KeyPressedEvent;
 		KeyEvent.Instance.Stop();
 		AppDomain.CurrentDomain.ProcessExit -= CurrentDomain_ProcessExit;
