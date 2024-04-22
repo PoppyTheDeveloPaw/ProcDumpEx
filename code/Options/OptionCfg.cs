@@ -4,15 +4,10 @@ using ProcDumpEx.Options;
 namespace ProcDumpEx.Options
 {
 	[Option("-cfg", true)]
-	internal class OptionCfg : OptionBase
+	internal class OptionCfg(string path) : OptionBase
 	{
-		internal string FilePath { get; }
+		internal string FilePath => path;
 		internal override bool IsCommandCreator => false;
-
-		public OptionCfg(string path)
-		{
-			FilePath = path;
-		}
 
 		internal string[] GetArgumentsFromFile()
 		{

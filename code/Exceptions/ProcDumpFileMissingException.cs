@@ -1,14 +1,8 @@
 ﻿namespace ProcDumpEx.Exceptions
 {
-	internal class ProcDumpFileMissingException : Exception
+	public class ProcDumpFileMissingException(string procDummpName, params string[] paths) : Exception($"{procDummpName} is missing. Expected under: {string.Join(" or ", paths)}")
 	{
-		internal string ProcDumpName { get; }
-		internal List<string> Paths { get; }
-
-		public ProcDumpFileMissingException(string procDummpName, params string[] paths) : base($"{procDummpName} is missing. Expected under: {string.Join(" or ", paths)}")
-		{
-			ProcDumpName = procDummpName;
-			Paths = paths.ToList();
-		}
+		internal string ProcDumpName => procDummpName;
+		internal List<string> Paths => [.. paths];
 	}
 }

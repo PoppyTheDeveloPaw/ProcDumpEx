@@ -72,11 +72,8 @@ namespace ProcDumpEx
 		}
 	}
 
-	internal record ProcDumpProcessIdentifier(int processId, string arguments)
+	internal record ProcDumpProcessIdentifier(int MonitoredProcess, string Arguments)
 	{
-		internal int MonitoredProcess => processId;
-		internal string Arguments => arguments;
-
 		public override int GetHashCode() => HashCode.Combine(MonitoredProcess, Arguments);
 	}
 }

@@ -1,7 +1,4 @@
 ﻿namespace ProcDumpExExceptions
 {
-	internal class GetArchitectureException : Exception
-	{
-		public GetArchitectureException() { }
-	}
+	public class GetArchitectureException : Exception;
 }

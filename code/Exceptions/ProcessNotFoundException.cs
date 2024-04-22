@@ -1,12 +1,7 @@
 ﻿namespace ProcDumpEx.Exceptions
 {
-    internal class ProcessNotFoundException : Exception
+    public class ProcessNotFoundException(int processId) : Exception
     {
-        internal int ProcessId { get; }
-
-        public ProcessNotFoundException(int processId)
-        {
-            ProcessId = processId;
-        }
+        internal int ProcessId => processId;
     }
 }
