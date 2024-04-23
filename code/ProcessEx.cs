@@ -1,5 +1,5 @@
 ﻿using Gapotchenko.FX.Diagnostics;
-using ProcDumpExExceptions;
+using ProcDumpEx.Exceptions;
 using System.Collections.Specialized;
 using System.Diagnostics;
 
@@ -36,8 +36,8 @@ namespace ProcDumpEx
 			catch (Exception e)
 			{
 				//Ugly as fuck - Not possible to read process environment variables.
-				ConsoleEx.WriteException("Failed to get process architecture. The process may require higher privileges than administrator.", e, string.Empty);
-				throw new GetArchitectureException();
+				ConsoleEx.WriteException($"Failed to get process architecture. The process may require higher privileges than administrator.", e, string.Empty);
+				throw new NotEnoughPrivilegesException();
 			}
 
 			if (!dictionary.TryGetValue(ProcessorArchitecture, out var value))

@@ -1,4 +1,4 @@
-﻿namespace ProcDumpExExceptions
+﻿namespace ProcDumpEx.Exceptions
 {
 	public class GetArchitectureException : Exception;
 }
