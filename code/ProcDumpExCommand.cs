@@ -1,6 +1,5 @@
 using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
-using ProcDumpExExceptions;
 using System.Diagnostics;
 using System.Text;
 
@@ -260,6 +259,12 @@ namespace ProcDumpEx
 			{
 				Stop();
 				ConsoleEx.WriteLog(e.Message, LogId, LogType.Error);
+				return;
+			}
+			catch (NotEnoughPrivilegesException)
+			{
+				Stop();
+				ConsoleEx.WriteLog($"ProcDumpEx was unable to access '{process.ProcessName}'. Please make sure that ProcDumpEx has sufficient privileges during execution and try again.", LogId, LogType.Error);
 				return;
 			}
 
