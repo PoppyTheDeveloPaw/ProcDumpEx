@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace ProcDumpEx.Options
+﻿namespace ProcDumpEx.Options
 {
 	public abstract class OptionBase
 	{

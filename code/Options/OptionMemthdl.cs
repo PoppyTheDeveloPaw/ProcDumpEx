@@ -17,7 +17,7 @@
 			{
 				if (!int.TryParse(value, out int mb) || mb < 0 || mb > maxMemory)
 				{
-					throw new ArgumentException($"{GetType().GetOption()} expects only positive numeric values between 0 and {maxMemory}");
+					throw new ArgumentException($"{GetType().GetOption()} expects only positive numeric values between 0 MB and {maxMemory} MB");
 				}
 
 				memoryCommitThreshold.Add(mb);

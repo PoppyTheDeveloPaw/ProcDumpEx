@@ -2,7 +2,7 @@
   "profiles": {
     "ProcDumpEx": {
       "commandName": "Project",
-      "commandLineArgs": "-ma -e -cputhd \\\"0, 123123,123,    213\\\"         -w \\\"notepad.exe, brave.exe, 1234\\\"\""
+      "commandLineArgs": "-ma -e -et 10s -w Notepad.exe"
     }
   }
 }

@@ -6,12 +6,33 @@ namespace ProcDumpEx;
 
 internal enum LogType
 {
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.Blue"/>
+	/// </summary>
 	Info,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.Red"/>
+	/// </summary>
 	Error,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.Green"/>
+	/// </summary>
 	Success,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.DarkYellow"/>
+	/// </summary>
 	Failure,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.White"/>
+	/// </summary>
 	Normal,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.DarkMagenta"/>
+	/// </summary>
 	ShutdownLog,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.Cyan"/>
+	/// </summary>
 	ProcDump
 }
 

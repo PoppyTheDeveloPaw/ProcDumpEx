@@ -2,7 +2,6 @@
 using Microsoft.Win32;
 using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Reflection;
@@ -35,14 +34,14 @@ namespace ProcDumpEx
 		/// <param name="type"></param>
 		/// <returns></returns>
 		internal static string GetOption(this Type type) => GetOptionAttribute(type).Option;
-		
+
 		/// <summary>
 		/// Returns if an value is expected for the given type
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
 		internal static bool GetValueExpected(this Type type) => GetOptionAttribute(type).ValueExpected;
-		
+
 		/// <summary>
 		/// Returns the description of the type.
 		/// </summary>
@@ -244,33 +243,31 @@ namespace ProcDumpEx
 			}
 		}
 
-		[StructLayout(LayoutKind.Sequential)]
-		internal struct MemoryStatusEx
-		{
-			internal uint dwLength;
-			internal uint dwMemoryLoad;
-			internal ulong ullTotalPhys;
-			internal ulong ullAvailPhys;
-			internal ulong ullTotalPageFile;
-			internal ulong ullAvailPageFile;
-			internal ulong ullTotalVirtual;
-			internal ulong ullAvailVirtual;
-			internal ulong ullAvailExtendedVirtual;
-		}
-		[return: MarshalAs(UnmanagedType.Bool)]
-		[DllImport("Kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-		static extern bool GlobalMemoryStatusEx([In, Out] MemoryStatusEx lpBuffer);
-
 		/// <summary>
 		/// Determines the maximum working memory and returns it in megabytes.
 		/// </summary>
 		/// <returns>Ram in mb</returns>
 		internal static double GetMaxRam()
 		{
-			MemoryStatusEx statEX = new();
-			GlobalMemoryStatusEx(statEX);
+			ManagementObjectSearcher searcher = new ManagementObjectSearcher("select Capacity from Win32_PhysicalMemory");
+			long totalMemory = 0;
 
-			return ByteSize.FromBytes(statEX.ullTotalPhys).MegaBytes;
+			foreach (var memory in searcher.Get())
+			{
+				totalMemory += Convert.ToInt64(memory["Capacity"]);
+			}
+
+			return ByteSize.FromBytes(totalMemory).MebiBytes;
+		}
+
+		/// <summary>
+		/// Returns a string that represents the timespan in the format dd:hhh:mmm:sss
+		/// </summary>
+		/// <param name="span"></param>
+		/// <returns>Formatted string</returns>
+		internal static string GetFormattedTimeSpanString(TimeSpan span)
+		{
+			return $"{span.Days}d:{span.Hours:00}h:{span.Minutes:00}m:{span.Seconds:00}s";
 		}
 	}
 }

@@ -1,6 +1,4 @@
-﻿using ProcDumpEx.Options;
-
-namespace ProcDumpEx.Options
+﻿namespace ProcDumpEx.Options
 {
 	[Option("-log", false)]
 	internal class OptionLog : OptionBase

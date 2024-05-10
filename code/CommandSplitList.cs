@@ -42,6 +42,7 @@ namespace ProcDumpEx
 		/// </summary>
 		/// <param name="commandLine"></param>
 		/// <returns></returns>
+		/// <exception cref="ArgumentException">The given parameter can not be splitted into tokens.</exception>
 		internal static CommandSplitList SplitCommandLineString(string commandLine)
 		{
 			CommandSplitList retTokens = [];
@@ -55,6 +56,7 @@ namespace ProcDumpEx
 
 				if (string.IsNullOrEmpty(token))
 				{
+					retTokens.Add((IsOption: false, Value: token));
 					index++;
 					continue;
 				}
@@ -74,16 +76,32 @@ namespace ProcDumpEx
 				}
 
 				//Goes through the list until it finds '"' at the end of a value
-				int x = index;
-				for (; x < tokens.Length; x++)
-					if (tokens[x].EndsWith('"'))
-						break;
+				int startQuoteIndex = index;
+				int endQuoteIndex = index;
+				if (tokens[startQuoteIndex].Length == 1)
+				{
+					endQuoteIndex++;
+				}
+				for (; endQuoteIndex < tokens.Length; endQuoteIndex++)
+				{
+					var t = tokens[endQuoteIndex];
 
-				//Merges all values inside the quotes again and splits them with comma
-				string value = string.Join(" ", tokens[index..(x + 1)]);
+					if (t.EndsWith('"'))
+					{
+						break;
+					}
+				}
+
+				if (endQuoteIndex + 1 > tokens.Length)
+				{
+					throw new ArgumentException("The specified parameters cannot be processed. Please check the parameters.", nameof(commandLine));
+				}
+
+				// Merges all values inside the quotes again and splits them with comma
+				string value = string.Join(" ", tokens[startQuoteIndex..(endQuoteIndex + 1)]);
 				retTokens.Add((IsOption: false, Value: value.Trim('"').Split(',').Select(o => o.Trim()).ToList()));
 
-				index = x;
+				index = endQuoteIndex + 1;
 			}
 
 			return retTokens;

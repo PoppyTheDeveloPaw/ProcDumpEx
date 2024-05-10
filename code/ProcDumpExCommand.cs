@@ -2,6 +2,7 @@ using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
 using System.Diagnostics;
 using System.Text;
+using System.Timers;
 
 namespace ProcDumpEx
 {
@@ -22,10 +23,13 @@ namespace ProcDumpEx
 		private readonly bool _use64;
 		private readonly bool _showoutput;
 		private bool _stopCalled = false;
+		private TerminationReason _terminationReason = TerminationReason.Finished;
 
 		private readonly List<OptionBase> _procDumpExOptions;
 
 		private readonly TaskCompletionSource _tcs = new();
+
+		private readonly System.Timers.Timer? _etTerminationTimer;
 
 		private List<string>? _executionProcDumpCommands;
 		private List<string> ExecutionProcDumpCommands
@@ -54,6 +58,7 @@ namespace ProcDumpEx
 
 			_processManager.MonitoringListEmpty += ProcessManager_MonitoringListEmpty;
 
+			// Remove all options that only set a flag but do not require execution 
 			Help = _procDumpExOptions.Exists(o => o is OptionHelp);
 
 			Log = _procDumpExOptions.Exists(o => o is OptionLog);
@@ -71,6 +76,17 @@ namespace ProcDumpEx
 			_showoutput = _procDumpExOptions.Exists(o => o is OptionShowOutput);
 			if (_showoutput)
 				_procDumpExOptions.RemoveAll(o => o is OptionShowOutput);
+
+			OptionEt? optionEt = _procDumpExOptions.Find(o => o is OptionEt) as OptionEt;
+			if (optionEt is not null)
+			{
+				_etTerminationTimer = new System.Timers.Timer(optionEt.TerminationTime)
+				{
+					AutoReset = false
+				};
+				_etTerminationTimer.Elapsed += TerminationTimer_Elapsed;
+				_procDumpExOptions.RemoveAll(o => o is OptionEt);
+			}
 
 			OptionCfg =	_procDumpExOptions.Find(o => o is OptionCfg) as OptionCfg;
 
@@ -93,8 +109,27 @@ namespace ProcDumpEx
 				_processManager.ProcDumpProcessTerminated += async (_, e) => await ProcessManager_ProcDumpProcessTerminatedAsync(e);
 		}
 
-		internal async Task RunAsync()
+		private async void TerminationTimer_Elapsed(object? sender, ElapsedEventArgs e)
 		{
+			if (_etTerminationTimer is null)
+			{
+				throw new ArgumentException("Internal Error, _etTerminationTimer should never be null, if this method is called.");
+			}
+
+			TimeSpan span = TimeSpan.FromMilliseconds(_etTerminationTimer.Interval);
+			await StopAsync(TerminationReason.TerminationTimerElapsed);
+			ConsoleEx.WriteLog($"ProcDumpEx instance was terminated due to -et option after {Helper.GetFormattedTimeSpanString(span)}.", LogId, LogType.ShutdownLog);
+		}
+
+		internal async Task<TerminationReason> RunAsync()
+		{
+			if (_etTerminationTimer is not null)
+			{
+				TimeSpan span = TimeSpan.FromMilliseconds(_etTerminationTimer.Interval);
+				ConsoleEx.WriteLog($"ProcDumpEx will terminate at {Helper.GetFormattedTimeSpanString(span)} due to -et option.", LogId, LogType.Info);
+				_etTerminationTimer.Start();
+			}
+
 			foreach (var creator in _procDumpExOptions.Where(o => o.IsCommandCreator))
 				await creator.ExecuteAsync(this);
 
@@ -102,8 +137,8 @@ namespace ProcDumpEx
 			{
 				if (!await option.ExecuteAsync(this))
 				{
-					Stop();
-					return;
+					await StopAsync(TerminationReason.InvalidParameter);
+					return _terminationReason;
 				}
 			}
 
@@ -120,28 +155,35 @@ namespace ProcDumpEx
 
 			if (_procDumpExOptions.Exists(o => o is OptionW) || _inf)
 				await _tcs.Task;
+
+			return _terminationReason;
 		}
 
-		internal void Stop()
+		internal async Task StopAsync(TerminationReason terminationReason)
 		{
 			if (_tcs.Task.IsCompleted)
 				return;
 
+			_etTerminationTimer?.Stop();
+			_terminationReason = terminationReason;
 			_stopCalled = true;
 			_inf = false;
 			_procDumpExOptions.Find(o => o is OptionW)?.StopExecution();
 
 			if (_processManager.KillAll())
 			{
-				//If no process is currently monitored, the program can be terminated directly
+				// If no process is currently monitored, the program can be terminated directly
 				_tcs.TrySetResult();
 			}
+			await _tcs.Task;
 		}
 
 		private void ProcessManager_MonitoringListEmpty(object? sender, EventArgs e)
 		{
 			if (_stopCalled)
+			{
 				_tcs.TrySetResult();
+			}
 		}
 
 		internal void AddProcDumpCommand(string command)
@@ -246,24 +288,24 @@ namespace ProcDumpEx
 			catch (ProcDumpFileMissingException e)
 			{
 				ConsoleEx.WriteLog(e.Message, LogId, LogType.Error);
-				Stop();
+				await StopAsync(TerminationReason.ErrorDuringExecution);
 				return;
 			}
 			catch (GetArchitectureException)
 			{
-				Stop();
+				await StopAsync(TerminationReason.ErrorDuringExecution);
 				ConsoleEx.WriteLog("An error occurred while querying the process architecture. The program will be terminated. Please create an issue at https://github.com/PoppyTheDeveloPaw/ProcDumpEx/issues with the used parameters", LogId, LogType.Error);
 				return;
 			}
 			catch (InvalidProcessorArchitectureException e)
 			{
-				Stop();
+				await StopAsync(TerminationReason.ErrorDuringExecution);
 				ConsoleEx.WriteLog(e.Message, LogId, LogType.Error);
 				return;
 			}
 			catch (NotEnoughPrivilegesException)
 			{
-				Stop();
+				await StopAsync(TerminationReason.ErrorDuringExecution);
 				ConsoleEx.WriteLog($"ProcDumpEx was unable to access '{process.ProcessName}'. Please make sure that ProcDumpEx has sufficient privileges during execution and try again.", LogId, LogType.Error);
 				return;
 			}
@@ -276,12 +318,12 @@ namespace ProcDumpEx
 
 				string output = "";
 
-				async Task Test(StreamReader standardOutput)
+				async Task ReadProcDumpOutputAsync(StreamReader standardOutput)
 				{
 					output = await standardOutput.ReadToEndAsync();
 				}
 
-				await Task.WhenAll(Test(procdump.StandardOutput), procdump.WaitForExitAsync());
+				await Task.WhenAll(ReadProcDumpOutputAsync(procdump.StandardOutput), procdump.WaitForExitAsync());
 
 				var outputList = output.Split("\r\n");
 
