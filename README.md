@@ -71,7 +71,7 @@ The -et parameter can be used to specify a time span for how long ProcDumpEx sho
 
 #### Example:
 
-- `procdumpex.exe -ma -e -et 1h:5m:10s Notepad.exe`
+- `procdumpex.exe -ma -e -et 1h:5m:10s <process>.exe`
 
 ### Parameter '-help'
 
