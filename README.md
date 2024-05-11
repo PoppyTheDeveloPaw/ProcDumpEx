@@ -33,6 +33,18 @@ ProcDump internally checks whether the process to be monitored is a 32- or 64-bi
 | ------------------------------------------- | ------------------------------------------ |
 | `procdumpex.exe -64 -ma -e <process 1>.exe` | `procdump64.exe -ma -e <PID of process 1>` |
 
+### Parameter '-cfg'
+
+With the prameter -cfg the path to a file can be specified, in which several ProcDumpEx commands stand. Here it is to be paid attention to the fact that per line exactly one ProcDumpEx command may stand.
+
+## Hint
+
+It is also possible to combine the parameters '-memthd', '-memthdl', '-cputhd' and '-cputhdl', which would lead to the following calls
+
+| ProcDumpEx call                                                                                                                       | Resulting Procdump calls                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `procdumpex.exe -ma -cputhd "10,50,80" -cputhdl "10,50,80" -memthd "10,50,80" -memthdl "10,50,80" "<process 1>.exe, <process 2>.exe"` | `<procdump.exe/procdump64.exe> -ma -c 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -c 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -c 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -c 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -c 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -c 80 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 80 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -m 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -m 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -m 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -m 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -m 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -m 80 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 80 <PID of process 2>` |
+
 ### Parameter '-cputhd'
 
 The cputhd parameter extends the -c parameter of Procdump. It checks whether one or more processes have exceeded a certain CPU usage and then generates memory dumps. The cputhd parameter allows the user to set one or more values to monitor and generate memory dumps accordingly. It is also possible to combine this parameter with the '-pn' and '-inf' parameters. The values provided are expressed in units of % (percent).
@@ -53,6 +65,14 @@ Parameter cputhdl extends the -cl parameter of Procdump. This parameter checks i
 | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `procdumpex.exe -ma -cputhdl "10,50,80" "<process 1>.exe, <process 2>.exe"` | `<procdump.exe/procdump64.exe> -ma -cl 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 80 <PID of process 2>` |
 
+### Parameter '-et'
+
+The -et parameter can be used to specify a time span for how long ProcDumpEx should run. As soon as the time has expired, all running ProcDump processes and ProcDumpEx are terminated. The specification is made in the following form -et dd:hhh:mmm:sss (example: -et 10d:22h:10m:11s). It is also possible to set only the desired values. For example -et 22h15s etc.
+
+#### Example:
+
+- `procdumpex.exe -ma -e -et 1h:5m:10s <process>.exe`
+
 ### Parameter '-help'
 
 The -help parameter can be used to display explanations and examples for the individual parameters supported by ProcDumpEx. In addition, the help of ProcDump is printed.  
@@ -61,6 +81,7 @@ As soon as the parameter '-help' occurs in the specified arguments, nothing is e
 #### Example:
 
 - `procdumpex.exe -help`
+
 
 ### Parameter '-inf'
 
@@ -71,6 +92,16 @@ The '-inf' parameter in ProcDumpEx ensures that new ProcDump instances are conti
 | ProcDumpEx call                                                        | Resulting Procdump calls                                                                                                |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `procdumpex.exe -ma -w -e -inf -pn "<process 1>.exe, <process 2>.exe“` | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -e <PID of process 2>` |
+
+### Parameter '-log'
+
+If the -log parameter is specified, a log file is written when ProcDumpEx exits, which contains the complete output of the console.
+
+#### Examples:
+
+| ProcDumpEx call                                                        | Resulting Procdump calls                                                                                                |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `procdumpex.exe -log -ma -w -e -pn "<process 1>.exe, <process 2>.exe“` | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -e <PID of process 2>` |
 
 ### Parameter '-memthd'
 
@@ -129,25 +160,3 @@ The '-w' parameter is a parameter used by ProcDump itself. When used in conjunct
 | ProcDumpEx call                                                   | Resulting Procdump calls                                                                                                |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `procdumpex.exe -ma -w -e -pn "<process 1>.exe, <process 2>.exe“` | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -e <PID of process 2>` |
-
-### Parameter '-log'
-
-If the -log parameter is specified, a log file is written when ProcDumpEx exits, which contains the complete output of the console.
-
-#### Examples:
-
-| ProcDumpEx call                                                        | Resulting Procdump calls                                                                                                |
-| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `procdumpex.exe -log -ma -w -e -pn "<process 1>.exe, <process 2>.exe“` | `<procdump.exe/procdump64.exe> -ma -e <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -e <PID of process 2>` |
-
-### Parameter '-cfg'
-
-With the prameter -cfg the path to a file can be specified, in which several ProcDumpEx commands stand. Here it is to be paid attention to the fact that per line exactly one ProcDumpEx command may stand.
-
-## Hint
-
-It is also possible to combine the parameters '-memthd', '-memthdl', '-cputhd' and '-cputhdl', which would lead to the following calls
-
-| ProcDumpEx call                                                                                                                       | Resulting Procdump calls                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `procdumpex.exe -ma -cputhd "10,50,80" -cputhdl "10,50,80" -memthd "10,50,80" -memthdl "10,50,80" "<process 1>.exe, <process 2>.exe"` | `<procdump.exe/procdump64.exe> -ma -c 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -c 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -c 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -c 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -c 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -c 80 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 80 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -m 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -m 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -m 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -m 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -m 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -m 80 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -ml 80 <PID of process 2>` |

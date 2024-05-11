@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.IO.Pipes;
-using System.Runtime.InteropServices;
 
 namespace ProcDumpEx
 {
@@ -9,7 +7,7 @@ namespace ProcDumpEx
 		private readonly Dictionary<ProcDumpProcessIdentifier, Process> _currentMonitoredProcesses;
 		private bool _killAllCalled = false;
 
-		private static readonly object _removeLock = new ();
+		private static readonly object _removeLock = new();
 
 		internal event EventHandler<ProcDumpInfo>? ProcDumpProcessTerminated;
 
@@ -24,7 +22,7 @@ namespace ProcDumpEx
 
 		public bool IsMonitored(string processName) => _currentMonitoredProcesses.Values.Any(o => Path.GetFileNameWithoutExtension(o.ProcessName) == Path.GetFileNameWithoutExtension(processName));
 
-		public void AddNewMonitoredProcess(int processId, string arguments, Process process, ProcDumpInfo info, string logId) 
+		public void AddNewMonitoredProcess(int processId, string arguments, Process process, ProcDumpInfo info, string logId)
 		{
 			_currentMonitoredProcesses[new(processId, arguments)] = process;
 			ConsoleEx.WriteLog($"{info.UsedProcDumpFileName} started with process id: {info.ProcDumpProcessId} / arguments: {info.UsedArguments}. Examined process: {info.ExaminedProcessName}. Number of active monitored processes: {_currentMonitoredProcesses.Count}", logId);
@@ -32,7 +30,7 @@ namespace ProcDumpEx
 
 		public bool RemoveMonitoredProcess(int processId, string arguments, ProcDumpInfo info, bool writeIdleMessage, bool succeeded, string logId)
 		{
-			lock( _removeLock )
+			lock (_removeLock)
 			{
 				bool value = _currentMonitoredProcesses.Remove(new(processId, arguments));
 

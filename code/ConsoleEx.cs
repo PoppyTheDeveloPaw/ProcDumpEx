@@ -6,13 +6,38 @@ namespace ProcDumpEx;
 
 internal enum LogType
 {
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.Blue"/>
+	/// </summary>
 	Info,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.Red"/>
+	/// </summary>
 	Error,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.Green"/>
+	/// </summary>
 	Success,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.DarkYellow"/>
+	/// </summary>
 	Failure,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.White"/>
+	/// </summary>
 	Normal,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.DarkMagenta"/>
+	/// </summary>
 	ShutdownLog,
-	ProcDump
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.Cyan"/>
+	/// </summary>
+	ProcDump,
+	/// <summary>
+	/// Text is displayed in the color <see cref="ConsoleColor.Magenta"/>
+	/// </summary>
+	LogFileSaved
 }
 
 internal static partial class ConsoleEx
@@ -45,6 +70,7 @@ internal static partial class ConsoleEx
 		LogType.Failure => ConsoleColor.DarkYellow,
 		LogType.ShutdownLog => ConsoleColor.DarkMagenta,
 		LogType.ProcDump => ConsoleColor.Cyan,
+		LogType.LogFileSaved => ConsoleColor.Magenta,
 		_ => ConsoleColor.White
 	};
 
@@ -114,12 +140,31 @@ internal static partial class ConsoleEx
 		string[] lines = input.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
 
 		StringBuilder sb = new();
-		foreach (string line in lines)
+
+		if (lines.Length == 1)
 		{
 			sb.Append(prefix);
-			sb.AppendLine(line);
+			sb.Append(lines[0]);
 		}
+		else
+		{
+			for (int i = 0; i < lines.Length; i++)
+			{
+				var line = lines[i];
 
+				if (i + 1 >= lines.Length)
+				{
+					sb.Append(prefix);
+					sb.Append(line);
+				}
+				else
+				{
+					sb.Append(prefix);
+					sb.AppendLine(line);
+				}
+			}
+		}
+		
 		return sb.ToString();
 	}
 
@@ -206,7 +251,9 @@ internal static partial class ConsoleEx
 			fileName,
 			_log.Select(x => x.Replace(Constants.StartUnderline, string.Empty).Replace(Constants.EndUnderline, string.Empty)));
 
-		WriteLog($"Log file saved with the name {fileName}", logId, LogType.ShutdownLog);
+		string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+
+		WriteLog($"Log file was created to the path '{filePath}'", logId, LogType.LogFileSaved);
 	}
 
 	/// <summary>

@@ -11,7 +11,9 @@ namespace ProcDumpEx
 		private static readonly string _cfgOption = typeof(OptionCfg).GetOption();
 		private static readonly string _helpOption = typeof(OptionHelp).GetOption();
 
-		[GeneratedRegex(@"[.]*\.exe$")]
+		private const string LogId = "ProcDumpExCommandParser";
+
+		[GeneratedRegex(@"^[^\\\/:*?""<>|]+\.exe$")]
 		private static partial Regex ProcessNameRegex();
 
 		/// <summary>
@@ -23,9 +25,25 @@ namespace ProcDumpEx
 		internal static ProcDumpExCommand? Parse(string commandLine, int logId)
 		{
 			//Split proc dump ex command in different tokens
-			var tokens = CommandSplitList.SplitCommandLineString(commandLine);
+			CommandSplitList tokens;
+			try
+			{
+				tokens = CommandSplitList.SplitCommandLineString(commandLine);
+			}
+			catch (ArgumentException)
+			{
+				return null;
+			}
 
-			ThrowExceptionIfDuplicatedOptionsExists(tokens);
+			try
+			{
+				ThrowExceptionIfDuplicatedOptionsExists(tokens);
+			}
+			catch (DuplicateOptionsException ex)
+			{
+				ConsoleEx.WriteLog($"The following parameters were defined several times: {string.Join(", ", ex.DuplicateKeys)}", LogId, LogType.Error);
+				return null;
+			}
 
 			var types = Helper.GetTypesWithOptionAttribute(Assembly.GetExecutingAssembly());
 
@@ -33,30 +51,42 @@ namespace ProcDumpEx
 
 			List<OptionBase> options = [];
 
-			//If -cfg is passed as argument, the remaining parameters can be ignored
-			if (ParseAndRemoveOptionValueIfExists<OptionCfg>(tokens) is { } cfgValue)
-			{
-				options.Add(cfgValue);
-				return new ProcDumpExCommand(options, [], [], tokens.ToString(), logId.ToString());
-			}
-
 			try
 			{
+				//If -cfg is passed as argument, the remaining parameters can be ignored
+				if (ParseAndRemoveOptionValueIfExists<OptionCfg>(tokens) is { } cfgValue)
+				{
+					options.Add(cfgValue);
+					return new ProcDumpExCommand(options, [], [], tokens.ToString(), logId.ToString());
+				}
+
 				processes = ExtractProcesses(tokens);
+				foreach (var type in types)
+				{
+					if (type.GetOption() == _pnOption || type.GetOption() == _cfgOption)
+						continue;
+
+					if (ParseAndRemoveOptionValueIfExists(type, tokens) is { } option)
+						options.Add(option);
+				}
 			}
-			catch (Exception e) when (e is ArgumentException or ValueExpectedException)
+			catch (TargetInvocationException ex)
 			{
-				ConsoleEx.WriteLog(e.Message, "ProcDumpExCommandParser", LogType.Error);
+				if (ex.InnerException is not null)
+				{
+					ConsoleEx.WriteLog(ex.InnerException.Message, LogId, LogType.Error);
+				}
+				else
+				{
+					ConsoleEx.WriteException("Unknown parsing error.", ex, LogId);
+				}
+
 				return null;
 			}
-
-			foreach (var type in types)
+			catch (Exception e) when (e is  ArgumentException or ValueExpectedException)
 			{
-				if (type.GetOption() == _pnOption || type.GetOption() == _cfgOption)
-					continue;
-
-				if (ParseAndRemoveOptionValueIfExists(type, tokens) is { } option)
-					options.Add(option);
+				ConsoleEx.WriteLog(e.Message, LogId, LogType.Error);
+				return null;
 			}
 
 			return new ProcDumpExCommand(options, processes.ProcessNames.Distinct().ToList(), processes.ProcessIds.Distinct().ToList(), tokens.ToString(), logId.ToString());
@@ -107,6 +137,8 @@ namespace ProcDumpEx
 		/// <param name="tokens">Tokens for parsing</param>
 		/// <returns>An object of the given command type <paramref name="type"/> if parsing was successfull; otherwise <see langword="null"/></returns>
 		/// <exception cref="ValueExpectedException">Is thrown if an command value is missing.</exception>
+		/// <exception cref="ArgumentException">Is thrown if the option expects other parameters</exception>
+		/// <exception cref="TargetInvocationException">Is thrown if the option expects other parameters</exception>
 		private static OptionBase? ParseAndRemoveOptionValueIfExists(Type type, CommandSplitList tokens)
 		{
 			int index = tokens.GetIndexOfOption(type.GetOption());
@@ -156,6 +188,8 @@ namespace ProcDumpEx
 		/// <param name="tokens">Tokens for parsing</param>
 		/// <returns>An object of the given command type <paramref name="type"/> if parsing was successfull; otherwise <see langword="null"/></returns>
 		/// <exception cref="ValueExpectedException">Is thrown if an command value is missing.</exception>
+		/// <exception cref="ArgumentException">Is thrown if the option expects other parameters</exception>
+		/// <exception cref="TargetInvocationException">Is thrown if the option expects other parameters</exception>
 		private static TReturnValue? ParseAndRemoveOptionValueIfExists<TReturnValue>(CommandSplitList tokens) where TReturnValue : OptionBase => (TReturnValue?)ParseAndRemoveOptionValueIfExists(typeof(TReturnValue), tokens);
 
 		/// <summary>

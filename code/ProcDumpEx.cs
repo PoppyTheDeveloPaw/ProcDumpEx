@@ -6,7 +6,6 @@ internal class ProcDumpEx
 {
 	private readonly ProcDumpExCommand[] _commands;
 
-	private bool _stoppedManually = false;
 	private bool _subscribed = false;
 
 	public ProcDumpEx(ProcDumpExCommand[] commands)
@@ -15,13 +14,13 @@ internal class ProcDumpEx
 		SubscribeEvents();
 	}
 
-	private void CurrentDomain_ProcessExit(object? sender, EventArgs e)
+	private async void CurrentDomain_ProcessExit(object? sender, EventArgs e)
 	{
+		await StopManuallyAsync();
 		ConsoleEx.WriteLog("ProcDumpEx was terminated manually by closing the window.", "Base", LogType.ShutdownLog);
-		StopManually();
 	}
 
-	private void Instance_KeyPressedEvent(object? sender, KeyPressed e)
+	private async void Instance_KeyPressedEvent(object? sender, KeyPressed e)
 	{
 		string key = e switch
 		{
@@ -30,18 +29,17 @@ internal class ProcDumpEx
 			KeyPressed.X => "X",
 			_ => "Unknown"
 		};
-		ConsoleEx.WriteLog($"ProcDumpEx was terminated manually by pressing the \"{key}\" key", "Base", LogType.ShutdownLog);
 
-		StopManually();
+		await StopManuallyAsync();
+		ConsoleEx.WriteLog($"ProcDumpEx was terminated manually by pressing the \"{key}\" key", "Base", LogType.ShutdownLog);
 	}
 
-	private void StopManually()
+	private async Task StopManuallyAsync()
 	{
 		UnsubscribeEvents();
-		_stoppedManually = true;
 		foreach (var command in _commands)
 		{
-			command.Stop();
+			await command.StopAsync(TerminationReason.ManuallyStopped);
 		}
 	}
 
@@ -57,16 +55,20 @@ internal class ProcDumpEx
 		}
 		else
 		{
-			List<Task> awaitCommands = [];
+			List<Task<TerminationReason>> awaitCommands = [];
 			foreach (var command in _commands)
 			{
 				awaitCommands.Add(command.RunAsync());
 			}
-			await Task.WhenAll(awaitCommands);
+			var terminationReasons = await Task.WhenAll(awaitCommands);
 
-			if (!_stoppedManually)
+			if (Array.TrueForAll(terminationReasons, o => o == TerminationReason.Finished))
 			{
 				ConsoleEx.WriteLog("ProcDumpEx was terminated after everything was done", "Base", LogType.ShutdownLog);
+			}
+			else if (awaitCommands.Count > 1)
+			{
+				ConsoleEx.WriteLog("Not all ProcDumpEx instances were terminated after everything was done. See the log for more information.", "Base", LogType.ShutdownLog);
 			}
 		}
 		UnsubscribeEvents();
