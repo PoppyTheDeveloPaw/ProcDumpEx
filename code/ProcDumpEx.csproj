@@ -32,6 +32,7 @@
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionShowOutput_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionLog_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionCfg_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)Description\OptionEt_Description.txt&quot; &quot;$(TargetDir)Description\&quot;" />
 
 		<!--Important files-->
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)README.md&quot; &quot;$(TargetDir)&quot;" />
