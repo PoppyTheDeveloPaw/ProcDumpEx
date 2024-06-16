@@ -37,6 +37,9 @@
 		<!--Important files-->
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)README.md&quot; &quot;$(TargetDir)&quot;" />
 		<Exec Command="XCOPY /Y &quot;$(SolutionDir)LICENSE&quot; &quot;$(TargetDir)&quot;" />
+
+		<!--Dependency for windows server 2012 r2-->
+		<Exec Command="XCOPY /Y &quot;$(SolutionDir)WMINET\WMINet_Utils.dll&quot; &quot;$(TargetDir)&quot;" />
 	</Target>
 
 	<ItemGroup>
