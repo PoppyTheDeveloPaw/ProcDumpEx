@@ -249,7 +249,7 @@ namespace ProcDumpEx
 		/// <returns>Ram in mb</returns>
 		internal static double GetMaxRam()
 		{
-			ManagementObjectSearcher searcher = new ManagementObjectSearcher("select Capacity from Win32_PhysicalMemory");
+			ManagementObjectSearcher searcher = new ("select Capacity from Win32_PhysicalMemory");
 			long totalMemory = 0;
 
 			foreach (var memory in searcher.Get())
