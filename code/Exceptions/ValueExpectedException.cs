@@ -1,4 +1,15 @@
-﻿namespace ProcDumpEx.Exceptions
+﻿using System;
+
+namespace ProcDumpEx.Exceptions
 {
-    public class ValueExpectedException(string exception, string option) : Exception(string.Format(exception, option));
+    public class ValueExpectedException : Exception
+	{
+        public ValueExpectedException(string exception, string option) : base(string.Format(exception, option))
+        {
+        }
+
+        public ValueExpectedException(string exceptionMsg) : base(exceptionMsg)
+        {
+        } 
+    }
 }

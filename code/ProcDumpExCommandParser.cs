@@ -155,7 +155,9 @@ namespace ProcDumpEx
 				if (!nextToken.HasValue || nextToken.Value.IsOption || !type.GetValueExpected())
 				{
 					if (type.GetValueExpected())
-						throw new ValueExpectedException("For the option {0} one or more values are expected", type.GetOption());
+					{
+						throw new ValueExpectedException(type.GetParameterMissingExceptionMsg());
+					}
 
 					tokens.RemoveAt(index);
 

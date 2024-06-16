@@ -43,6 +43,13 @@ namespace ProcDumpEx
 		internal static bool GetValueExpected(this Type type) => GetOptionAttribute(type).ValueExpected;
 
 		/// <summary>
+		/// Returns the message for the given option type, which is output if no parameter is defined.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		internal static string GetParameterMissingExceptionMsg(this Type type) => GetOptionAttribute(type).ParameterMissingExceptionMsg;
+
+		/// <summary>
 		/// Returns the description of the type.
 		/// </summary>
 		/// <param name="type"></param>
