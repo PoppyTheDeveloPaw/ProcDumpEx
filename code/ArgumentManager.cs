@@ -27,33 +27,44 @@ namespace ProcDumpEx
 					return [command];
 				}
 
+				bool lineIgnored = false;
+
 				foreach (var argsCommandLine in command.OptionCfg.GetArgumentsFromFile())
 				{
 					if (argsCommandLine.Content.Length == 0)
 					{
 						ConsoleEx.WriteLog($"For the execution of ProcDumpEx parameters are expected. Empty line in configuration file ({command.OptionCfg.FilePath} Line: {argsCommandLine.Index}) is ignored. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager", LogType.Error);
+						lineIgnored = true;
 						continue;
 					}
 
 					if (argsCommandLine.Content.IndexOfAny(['=', '!', '?']) != -1)
 					{
 						ConsoleEx.WriteLog($"There are invalid characters in the configuration file ({command.OptionCfg.FilePath} Line: {argsCommandLine.Index}). The line is ignored. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager", LogType.Error);
+						lineIgnored = true;
 						continue;
 					}
 
 					if (ProcDumpExCommandParser.Parse(argsCommandLine.Content, idCounter++) is not { } cfgCommand)
 					{
 						ConsoleEx.WriteLog($"Specified parameters ({argsCommandLine.Content}) ({command.OptionCfg.FilePath} Line: {argsCommandLine.Index}) could not be parsed and are therefore ignored. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager", LogType.Error);
+						lineIgnored = true;
 						continue;
 					}
 
 					if (cfgCommand.OptionCfg is not null)
 					{
 						ConsoleEx.WriteLog($"The -cfg parameter could not be used in the configuration file. {command.OptionCfg.FilePath} Line: {argsCommandLine.Index} is ignored", "ArgumentManager", LogType.Error);
+						lineIgnored = true;
 						continue;
 					}
 
 					commands.Add(cfgCommand);
+				}
+
+				if (!lineIgnored)
+				{
+					ConsoleEx.WriteLog($"The configuration file ({command.OptionCfg.FilePath}) is correct. All lines that were not commented out were processed correctly.", "ArgumentManager", LogType.Info);
 				}
 			}
 			catch (ManageArgumentsException e)
