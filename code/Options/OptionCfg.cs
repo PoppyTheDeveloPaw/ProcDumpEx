@@ -17,25 +17,39 @@ namespace ProcDumpEx.Options
 			FilePath = path;
 		}
 
-		internal string[] GetArgumentsFromFile()
+		internal IEnumerable<(int Index, string Content)> GetArgumentsFromFile()
 		{
 			if (!File.Exists(FilePath))
-				throw new ManageArgumentsException("The specified config path is invalid");
+			{ 
+				throw new ManageArgumentsException("The specified config path is invalid"); 
+			}
 
-			var lines = File.ReadAllLines(FilePath);
+			List<(int Index, string Content)> linesOfInterest = [];
+			var content = File.ReadAllLines(FilePath);
+			for (int i = 0; i < content.Length; i++)
+			{
+				linesOfInterest.Add((i + 1, content[i]));
+			}
+			// Filter out all commented out lines. First char is # or //
+			linesOfInterest = linesOfInterest.Where(o => !o.Content.StartsWith('#') && !o.Content.StartsWith("//")).ToList();
 
+			// Remove procdumex.exe at the begin of the line
 			string toRemoveAtStart = "procdumpex.exe ";
 
-			for (int i = 0; i < lines.Length; i++)
+			for (int i = 0; i < linesOfInterest.Count(); i++)
 			{
-				if (lines[i].StartsWith(toRemoveAtStart, StringComparison.OrdinalIgnoreCase))
+				if (linesOfInterest[i].Content.StartsWith(toRemoveAtStart, StringComparison.OrdinalIgnoreCase))
 				{
-					lines[i] = lines[i][toRemoveAtStart.Length..];
+					linesOfInterest[i] = (linesOfInterest[i].Index, linesOfInterest[i].Content[toRemoveAtStart.Length..]);
 				}
 			}
 
-			//ignore comments
-			return lines.Where(x => !x.StartsWith("//") && !x.StartsWith('#')).ToArray();
+			if (linesOfInterest.All(o => string.IsNullOrWhiteSpace(o.Content)))
+			{
+				throw new ManageArgumentsException("The specified config file is fully commented out, empty, or contains only whitespace");
+			}
+
+			return linesOfInterest;
 		}
 
 		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
