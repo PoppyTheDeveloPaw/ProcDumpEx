@@ -43,7 +43,7 @@
 			int days = ExtractNumberFromString(time, 'd') ?? 0;
 			if (days < 0)
 			{
-				throw new ArgumentException($"{GetType().GetOption()} expects only positive numbers for the number before the letter 'd'");
+				throw new ArgumentException($"{GetType().GetOption()} expects only positive numbers not greater than 10675199 for the number before the letter 'd'");
 			}
 
 			int hours = ExtractNumberFromString(time, 'h') ?? 0;
@@ -53,18 +53,26 @@
 			}
 
 			int minutes = ExtractNumberFromString(time, 'm') ?? 0;
-			if (hours is (> 59 or < 0))
+			if (minutes is (> 59 or < 0))
 			{
 				throw new ArgumentException($"{GetType().GetOption()} expects only numbers between 0 and 59 for the number before the letter 'm'");
 			}
 
 			int seconds = ExtractNumberFromString(time, 's') ?? 0;
-			if (hours is (> 59 or < 0))
+			if (seconds is (> 59 or < 0))
 			{
 				throw new ArgumentException($"{GetType().GetOption()} expects only numbers between 0 and 59 for the number before the letter 's'");
 			}
 
-			return new TimeSpan(days, hours, minutes, seconds);
+			try
+			{
+				return new TimeSpan(days, hours, minutes, seconds);
+			}
+			catch
+			{
+				throw new ArgumentException($"{GetType().GetOption()} expects a time span not greater than {Helper.GetFormattedTimeSpanString(TimeSpan.MaxValue)}.");
+			}
+			
 		}
 
 		/// <summary>
@@ -103,7 +111,13 @@
 			numericChars.Reverse();
 
 			string number = string.Join("", numericChars);
-			return int.Parse(number, System.Globalization.NumberStyles.Integer);
+
+			if (int.TryParse(number, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.CurrentCulture, out int result))
+			{
+				return result;
+			}
+
+			return -1;
 		}
 	}
 }

@@ -29,7 +29,7 @@ namespace ProcDumpEx
 
 		private readonly TaskCompletionSource _tcs = new();
 
-		private readonly System.Timers.Timer? _etTerminationTimer;
+		private readonly ThreadingTimer? _etTerminationTimer;
 
 		private List<string>? _executionProcDumpCommands;
 		private List<string> ExecutionProcDumpCommands
@@ -80,11 +80,7 @@ namespace ProcDumpEx
 			OptionEt? optionEt = _procDumpExOptions.Find(o => o is OptionEt) as OptionEt;
 			if (optionEt is not null)
 			{
-				_etTerminationTimer = new System.Timers.Timer(optionEt.TerminationTimeSpan)
-				{
-					AutoReset = false
-				};
-				_etTerminationTimer.Elapsed += TerminationTimer_Elapsed;
+				_etTerminationTimer = new ThreadingTimer(TerminationTimer_Elapsed, false, optionEt.TerminationTimeSpan);
 				_procDumpExOptions.RemoveAll(o => o is OptionEt);
 			}
 
@@ -109,25 +105,23 @@ namespace ProcDumpEx
 				_processManager.ProcDumpProcessTerminated += async (_, e) => await ProcessManager_ProcDumpProcessTerminatedAsync(e);
 		}
 
-		private async void TerminationTimer_Elapsed(object? sender, ElapsedEventArgs e)
+		private async void TerminationTimer_Elapsed()
 		{
 			if (_etTerminationTimer is null)
 			{
 				throw new ArgumentException("Internal Error, _etTerminationTimer should never be null, if this method is called.");
 			}
 
-			TimeSpan span = TimeSpan.FromMilliseconds(_etTerminationTimer.Interval);
 			await StopAsync(TerminationReason.TerminationTimerElapsed);
-			ConsoleEx.WriteLog($"ProcDumpEx instance was terminated due to -et option after {Helper.GetFormattedTimeSpanString(span)}.", LogId, LogType.ShutdownLog);
+			ConsoleEx.WriteLog($"ProcDumpEx instance was terminated due to -et option after {Helper.GetFormattedTimeSpanString(_etTerminationTimer.TimeSpan)}.", LogId, LogType.ShutdownLog);
 		}
 
 		internal async Task<TerminationReason> RunAsync()
 		{
 			if (_etTerminationTimer is not null)
 			{
-				TimeSpan span = TimeSpan.FromMilliseconds(_etTerminationTimer.Interval);
-				ConsoleEx.WriteLog($"The ProcDumpEx instance is terminated by the specified parameter -et in {Helper.GetFormattedTimeSpanString(span)}. Estimated end time: {Helper.GetEstimatedEndingTime(span)}", LogId, LogType.Info);
-				_etTerminationTimer.Start();
+				_etTerminationTimer.Start(); 
+				ConsoleEx.WriteLog($"The ProcDumpEx instance is terminated by the specified parameter -et in {Helper.GetFormattedTimeSpanString(_etTerminationTimer.TimeSpan)}. Estimated end time: {_etTerminationTimer.EndTime?.ToString("dd/MM/yyyy HH:mm:ss")}", LogId, LogType.Info);
 			}
 
 			foreach (var creator in _procDumpExOptions.Where(o => o.IsCommandCreator))
@@ -164,7 +158,7 @@ namespace ProcDumpEx
 			if (_tcs.Task.IsCompleted)
 				return;
 
-			_etTerminationTimer?.Stop();
+			_etTerminationTimer?.Dispose();
 			_terminationReason = terminationReason;
 			_stopCalled = true;
 			_inf = false;

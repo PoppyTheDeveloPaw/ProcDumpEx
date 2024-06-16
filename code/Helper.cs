@@ -5,7 +5,6 @@ using ProcDumpEx.Options;
 using System.Diagnostics.CodeAnalysis;
 using System.Management;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Security.Principal;
 
 namespace ProcDumpEx
@@ -256,7 +255,7 @@ namespace ProcDumpEx
 		/// <returns>Ram in mb</returns>
 		internal static double GetMaxRam()
 		{
-			ManagementObjectSearcher searcher = new ("select Capacity from Win32_PhysicalMemory");
+			ManagementObjectSearcher searcher = new("select Capacity from Win32_PhysicalMemory");
 			long totalMemory = 0;
 
 			foreach (var memory in searcher.Get())
@@ -275,16 +274,6 @@ namespace ProcDumpEx
 		internal static string GetFormattedTimeSpanString(TimeSpan span)
 		{
 			return $"{span.Days}d:{span.Hours:00}h:{span.Minutes:00}m:{span.Seconds:00}s";
-		}
-
-		/// <summary>
-		/// Returns the expected stop time of ProcDumpEx.
-		/// </summary>
-		/// <param name="span">Specifies how long ProcDumpEx should run before it is terminated.</param>
-		/// <returns></returns>
-		internal static string GetEstimatedEndingTime(TimeSpan span)
-		{
-			return (DateTime.Now + span).ToString("dd/MM/yyyy HH:mm:ss");
 		}
 	}
 }
