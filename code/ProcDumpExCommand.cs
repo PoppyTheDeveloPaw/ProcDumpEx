@@ -80,7 +80,7 @@ namespace ProcDumpEx
 			OptionEt? optionEt = _procDumpExOptions.Find(o => o is OptionEt) as OptionEt;
 			if (optionEt is not null)
 			{
-				_etTerminationTimer = new System.Timers.Timer(optionEt.TerminationTime)
+				_etTerminationTimer = new System.Timers.Timer(optionEt.TerminationTimeSpan)
 				{
 					AutoReset = false
 				};
@@ -126,7 +126,7 @@ namespace ProcDumpEx
 			if (_etTerminationTimer is not null)
 			{
 				TimeSpan span = TimeSpan.FromMilliseconds(_etTerminationTimer.Interval);
-				ConsoleEx.WriteLog($"ProcDumpEx will terminate at {Helper.GetFormattedTimeSpanString(span)} due to -et option.", LogId, LogType.Info);
+				ConsoleEx.WriteLog($"The ProcDumpEx instance is terminated by the specified parameter -et in {Helper.GetFormattedTimeSpanString(span)}. Estimated end time: {Helper.GetEstimatedEndingTime(span)}", LogId, LogType.Info);
 				_etTerminationTimer.Start();
 			}
 

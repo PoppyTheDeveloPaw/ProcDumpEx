@@ -269,5 +269,15 @@ namespace ProcDumpEx
 		{
 			return $"{span.Days}d:{span.Hours:00}h:{span.Minutes:00}m:{span.Seconds:00}s";
 		}
+
+		/// <summary>
+		/// Returns the expected stop time of ProcDumpEx.
+		/// </summary>
+		/// <param name="span">Specifies how long ProcDumpEx should run before it is terminated.</param>
+		/// <returns></returns>
+		internal static string GetEstimatedEndingTime(TimeSpan span)
+		{
+			return (DateTime.Now + span).ToString("dd/MM/yyyy HH:mm:ss");
+		}
 	}
 }

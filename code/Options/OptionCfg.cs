@@ -36,7 +36,7 @@ namespace ProcDumpEx.Options
 			// Remove procdumex.exe at the begin of the line
 			string toRemoveAtStart = "procdumpex.exe ";
 
-			for (int i = 0; i < linesOfInterest.Count(); i++)
+			for (int i = 0; i < linesOfInterest.Count; i++)
 			{
 				if (linesOfInterest[i].Content.StartsWith(toRemoveAtStart, StringComparison.OrdinalIgnoreCase))
 				{
@@ -44,7 +44,7 @@ namespace ProcDumpEx.Options
 				}
 			}
 
-			if (linesOfInterest.All(o => string.IsNullOrWhiteSpace(o.Content)))
+			if (linesOfInterest.TrueForAll(o => string.IsNullOrWhiteSpace(o.Content)))
 			{
 				throw new ManageArgumentsException("The specified config file is fully commented out, empty, or contains only whitespace");
 			}
