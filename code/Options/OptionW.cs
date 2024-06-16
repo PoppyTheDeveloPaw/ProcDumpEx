@@ -49,7 +49,6 @@ namespace ProcDumpEx.Options
 
 		internal override void StopExecution()
 		{
-			ConsoleEx.WriteLog("Execution of command '-w' is terminated.", _logId, LogType.Info);
 			Dispose();
 		}
 
