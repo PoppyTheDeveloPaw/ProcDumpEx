@@ -7,7 +7,7 @@
 
 		internal virtual void StopExecution()
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 	}
 }

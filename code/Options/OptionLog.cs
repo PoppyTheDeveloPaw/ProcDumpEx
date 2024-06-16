@@ -11,7 +11,7 @@
 
 		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 	}
 }

@@ -4,13 +4,13 @@
 	internal class OptionEt : OptionBase
 	{
 		internal override bool IsCommandCreator => false;
-		public TimeSpan TerminationTime { get; }
+		public TimeSpan TerminationTimeSpan { get; }
 
 		public OptionEt(string timeString)
 		{
-			TerminationTime = ParseStringToTimeSpan(timeString);
+			TerminationTimeSpan = ParseStringToTimeSpan(timeString);
 
-			if (TerminationTime.TotalMilliseconds <= 0)
+			if (TerminationTimeSpan.TotalMilliseconds <= 0)
 			{
 				throw new ArgumentException($"{GetType().GetOption()} expects an input that is greater than 0 days, 0 hours, 0 minutes and 0 seconds");
 			}
@@ -18,7 +18,7 @@
 
 		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
 		{
-			throw new NotImplementedException();
+			throw new NotSupportedException();
 		}
 
 		private TimeSpan ParseStringToTimeSpan(string time)
