@@ -1,6 +1,6 @@
 ﻿namespace ProcDumpEx.Options
 {
-	[Option("-et", true)]
+	[Option("-et", true, "No value provided for -et. Please provide a value in the format 999d23h59m59s.")]
 	internal class OptionEt : OptionBase
 	{
 		internal override bool IsCommandCreator => false;
