@@ -14,6 +14,12 @@
 			{
 				throw new ArgumentException($"{GetType().GetOption()} expects an input that is greater than 0 days, 0 hours, 0 minutes and 0 seconds");
 			}
+
+			if ((TerminationTimeSpan.TotalDays / 365 + DateTime.UtcNow.Year) > DateTime.MaxValue.Year)
+			{
+				throw new ArgumentException($"{GetType().GetOption()} expects an input value which is selected in such a way that if " +
+					$"you convert the value into years and add it to the current year, the result is a number <= 9999.");
+			}
 		}
 
 		internal override Task<bool> ExecuteAsync(ProcDumpExCommand command)
