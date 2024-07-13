@@ -15,7 +15,8 @@
 				throw new ArgumentException($"{GetType().GetOption()} expects an input that is greater than 0 days, 0 hours, 0 minutes and 0 seconds");
 			}
 
-			if ((TerminationTimeSpan.TotalDays / 365 + DateTime.UtcNow.Year) > DateTime.MaxValue.Year)
+			// TerminationTimeSpan + UtcNow must not be greater than 9999 years, as this is the maximum of DateTime
+			if (TerminationTimeSpan.TotalDays > (DateTime.MaxValue - DateTime.UtcNow).TotalDays)
 			{
 				throw new ArgumentException($"{GetType().GetOption()} expects an input value which is selected in such a way that if " +
 					$"you convert the value into years and add it to the current year, the result is a number <= 9999.");
