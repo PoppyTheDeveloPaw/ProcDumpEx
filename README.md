@@ -65,13 +65,13 @@ Parameter cputhdl extends the -cl parameter of Procdump. This parameter checks i
 | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `procdumpex.exe -ma -cputhdl "10,50,80" "<process 1>.exe, <process 2>.exe"` | `<procdump.exe/procdump64.exe> -ma -cl 10 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 50 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 80 <PID of process 1>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 10 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 50 <PID of process 2>`<br/>`<procdump.exe/procdump64.exe> -ma -cl 80 <PID of process 2>` |
 
-### Parameter '-et'
+### Parameter '-ta'
 
-The -et parameter can be used to specify a time span for how long ProcDumpEx should run. As soon as the time has expired, all running ProcDump processes and ProcDumpEx are terminated. The specification is made in the following form -et dd:hhh:mmm:sss (example: -et 10d:22h:10m:11s). It is also possible to set only the desired values. For example -et 22h15s etc.
+The -ta parameter can be used to specify a time span for how long ProcDumpEx should run. As soon as the time has expired, all running ProcDump processes and ProcDumpEx are terminated. The specification is made in the following form -ta dd:hhh:mmm:sss (example: -ta 10d:22h:10m:11s). It is also possible to set only the desired values. For example -ta 22h15s etc.
 
 #### Example:
 
-- `procdumpex.exe -ma -e -et 1h:5m:10s <process>.exe`
+- `procdumpex.exe -ma -e -ta 1h:5m:10s <process>.exe`
 
 ### Parameter '-help'
 

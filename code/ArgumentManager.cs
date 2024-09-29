@@ -64,7 +64,7 @@ namespace ProcDumpEx
 
 				if (!lineIgnored)
 				{
-					ConsoleEx.WriteLog($"The configuration file ({command.OptionCfg.FilePath}) is correct. All lines that were not commented out were processed correctly.", "ArgumentManager", LogType.Info);
+					ConsoleEx.WriteLog($"The configuration file ({command.OptionCfg.FilePath}) is ProcDumpEx compliant. All lines that were not commented out were processed correctly.", "ArgumentManager", LogType.Info);
 				}
 			}
 			catch (ManageArgumentsException e)

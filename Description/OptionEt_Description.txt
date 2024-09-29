@@ -1,6 +1,0 @@
-﻿The -et parameter can be used to specify a time span for how long ProcDumpEx should run. As soon as the time has expired, all running ProcDump processes and ProcDumpEx are terminated. The specification is made in the following form -et dd:hhh:mmm:sss (example: -et 10d:22h:10m:11s). It is also possible to set only the desired values. For example -et 22h15s etc. 
-
-Since we work with DateTime from C# for larger inputs and this can only represent the maximum year 9999, the input value must be selected so that when the value is converted to years and added to the current year, a number <= 9999 results.
-
-Example:
-1.	ProcDumpEx.exe -ma -e -et 1h:5m:10s <process>.exe

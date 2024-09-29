@@ -77,11 +77,11 @@ namespace ProcDumpEx
 			if (_showoutput)
 				_procDumpExOptions.RemoveAll(o => o is OptionShowOutput);
 
-			OptionEt? optionEt = _procDumpExOptions.Find(o => o is OptionEt) as OptionEt;
-			if (optionEt is not null)
+			OptionTa? optionAt = _procDumpExOptions.Find(o => o is OptionTa) as OptionTa;
+			if (optionAt is not null)
 			{
-				_etTerminationTimer = new ThreadingTimer(TerminationTimer_Elapsed, false, optionEt.TerminationTimeSpan);
-				_procDumpExOptions.RemoveAll(o => o is OptionEt);
+				_etTerminationTimer = new ThreadingTimer(TerminationTimer_Elapsed, false, optionAt.TerminationTimeSpan);
+				_procDumpExOptions.RemoveAll(o => o is OptionTa);
 			}
 
 			OptionCfg =	_procDumpExOptions.Find(o => o is OptionCfg) as OptionCfg;
@@ -113,7 +113,7 @@ namespace ProcDumpEx
 			}
 
 			await StopAsync(TerminationReason.TerminationTimerElapsed);
-			ConsoleEx.WriteLog($"ProcDumpEx instance was terminated due to -et option after {Helper.GetFormattedTimeSpanString(_etTerminationTimer.TimeSpan)}.", LogId, LogType.ShutdownLog);
+			ConsoleEx.WriteLog($"ProcDumpEx instance was terminated due to -ta option after {Helper.GetFormattedTimeSpanString(_etTerminationTimer.TimeSpan)}.", LogId, LogType.ShutdownLog);
 		}
 
 		internal async Task<TerminationReason> RunAsync()
@@ -121,7 +121,7 @@ namespace ProcDumpEx
 			if (_etTerminationTimer is not null)
 			{
 				_etTerminationTimer.Start(); 
-				ConsoleEx.WriteLog($"The ProcDumpEx instance is terminated by the specified parameter -et in {Helper.GetFormattedTimeSpanString(_etTerminationTimer.TimeSpan)}. Estimated end time: {_etTerminationTimer.EndTime?.ToString("dd/MM/yyyy HH:mm:ss")}", LogId, LogType.Info);
+				ConsoleEx.WriteLog($"The ProcDumpEx instance is terminated by the specified parameter -ta in {Helper.GetFormattedTimeSpanString(_etTerminationTimer.TimeSpan)}. Estimated end time: {_etTerminationTimer.EndTime?.ToString("dd/MM/yyyy HH:mm:ss")}", LogId, LogType.Info);
 			}
 
 			foreach (var creator in _procDumpExOptions.Where(o => o.IsCommandCreator))
