@@ -20,6 +20,7 @@ namespace ProcDumpEx
 		private readonly string _baseProcDumpCommand;
 
 		private bool _inf;
+		private bool _incorrectArguments = false;
 		private readonly bool _use64;
 		private readonly bool _showoutput;
 		private bool _stopCalled = false;
@@ -325,7 +326,16 @@ namespace ProcDumpEx
 
 				//Check if procdump output contains help string
 				if (output.Contains("Use -? -e to see example command lines."))
-					ConsoleEx.WriteLog("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.", LogId, LogType.Error);
+				{
+					StringBuilder sb = new StringBuilder("Procdump help was print, indicating incorrect arguments. Please check specified arguments and if necessary stop ProcDumpEx and restart with correct arguments.");
+					if (_inf)
+					{
+						_incorrectArguments = true;
+						sb.AppendLine(". Execution is not repeated despite parameter -inf.");
+					}
+
+					ConsoleEx.WriteLog(sb.ToString(), LogId, LogType.Error); 
+				}
 
 				_processManager.RemoveMonitoredProcess(process.Id, argument, procDumpInfo, !_inf && _procDumpExOptions.Exists(o => o is OptionW), output.Contains("Dump count reached"), LogId);
 			}
@@ -354,7 +364,7 @@ namespace ProcDumpEx
         
 		private async Task ProcessManager_ProcDumpProcessTerminatedAsync(ProcDumpInfo e)
 		{
-			if (_inf)
+			if (_inf && !_incorrectArguments)
 				await ExecuteAsync(e.ExaminedProcessId);
 		}
 
