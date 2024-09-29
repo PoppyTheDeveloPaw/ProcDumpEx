@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
-		<AssemblyVersion>1.3.0.1</AssemblyVersion>
-		<InformationalVersion>1.3.0.1-Beta</InformationalVersion>
+		<AssemblyVersion>1.3.0</AssemblyVersion>
+		<InformationalVersion>1.3.0-Preview1</InformationalVersion>
 		<Authors>Alexander Peipp;Daniel Eichner</Authors>
 		<Copyright>Alexander Peipp;Daniel Eichner</Copyright>
 		<BaseOutputPath>..\out\bin</BaseOutputPath>
