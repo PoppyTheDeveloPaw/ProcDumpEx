@@ -331,7 +331,7 @@ namespace ProcDumpEx
 					if (_inf)
 					{
 						_incorrectArguments = true;
-						sb.AppendLine(". Execution is not repeated despite parameter -inf.");
+						sb.Append(" Execution is not repeated despite parameter -inf.");
 					}
 
 					ConsoleEx.WriteLog(sb.ToString(), LogId, LogType.Error); 
