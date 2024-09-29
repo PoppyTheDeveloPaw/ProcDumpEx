@@ -45,7 +45,7 @@ namespace ProcDumpEx
 						continue;
 					}
 
-					if (ProcDumpExCommandParser.Parse(argsCommandLine.Content, idCounter++) is not { } cfgCommand)
+					if (ProcDumpExCommandParser.Parse(argsCommandLine.Content, idCounter++, (argsCommandLine.Index, command.OptionCfg.FilePath)) is not { } cfgCommand)
 					{
 						ConsoleEx.WriteLog($"Specified parameters ({argsCommandLine.Content}) ({command.OptionCfg.FilePath} Line: {argsCommandLine.Index}) could not be parsed and are therefore ignored. Use the parameter \"-help\" to display examples and allowed parameters", "ArgumentManager", LogType.Error);
 						lineIgnored = true;

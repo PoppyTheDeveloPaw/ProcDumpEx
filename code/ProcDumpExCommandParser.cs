@@ -1,6 +1,7 @@
 ﻿using ProcDumpEx.Exceptions;
 using ProcDumpEx.Options;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ProcDumpEx
@@ -22,7 +23,7 @@ namespace ProcDumpEx
 		/// <param name="commandLine">Command line to parse</param>
 		/// <param name="logId">Caller id for logging.</param>
 		/// <returns>Returns the <see cref="ProcDumpExCommand"/> object if the parsing was successful; otherwise <see langword="null"/>.</returns>
-		internal static ProcDumpExCommand? Parse(string commandLine, int logId)
+		internal static ProcDumpExCommand? Parse(string commandLine, int logId, (int Line, string FilePath)? cfgFile = null)
 		{
 			//Split proc dump ex command in different tokens
 			CommandSplitList tokens;
@@ -30,8 +31,14 @@ namespace ProcDumpEx
 			{
 				tokens = CommandSplitList.SplitCommandLineString(commandLine);
 			}
-			catch (ArgumentException)
+			catch (ArgumentException ae)
 			{
+				StringBuilder sb = new StringBuilder(ae.Message);
+				if (cfgFile.HasValue)
+				{
+					sb.Append($" ConfigFile: {cfgFile.Value.FilePath} Line: {cfgFile.Value.Line}");
+				}
+				ConsoleEx.WriteLog(sb.ToString(), LogId, LogType.Error);
 				return null;
 			}
 
@@ -41,7 +48,12 @@ namespace ProcDumpEx
 			}
 			catch (DuplicateOptionsException ex)
 			{
-				ConsoleEx.WriteLog($"The following parameters were defined several times: {string.Join(", ", ex.DuplicateKeys)}", LogId, LogType.Error);
+				StringBuilder sb = new StringBuilder($"The following parameters were defined several times: {string.Join(", ", ex.DuplicateKeys)}.");
+				if (cfgFile.HasValue)
+				{
+					sb.Append($" ConfigFile: {cfgFile.Value.FilePath} Line: {cfgFile.Value.Line}");
+				}
+				ConsoleEx.WriteLog(sb.ToString(), LogId, LogType.Error);
 				return null;
 			}
 
@@ -74,18 +86,33 @@ namespace ProcDumpEx
 			{
 				if (ex.InnerException is not null)
 				{
-					ConsoleEx.WriteLog(ex.InnerException.Message, LogId, LogType.Error);
+					StringBuilder sb = new StringBuilder(ex.InnerException.Message);
+					if (cfgFile.HasValue)
+					{
+						sb.Append($" ConfigFile: {cfgFile.Value.FilePath} Line: {cfgFile.Value.Line}");
+					}
+					ConsoleEx.WriteLog(sb.ToString(), LogId, LogType.Error);
 				}
 				else
 				{
-					ConsoleEx.WriteException("Unknown parsing error.", ex, LogId);
+					StringBuilder sb = new StringBuilder("Unknown parsing error.");
+					if (cfgFile.HasValue)
+					{
+						sb.Append($" ConfigFile: {cfgFile.Value.FilePath} Line: {cfgFile.Value.Line}");
+					}
+					ConsoleEx.WriteException(sb.ToString(), ex, LogId);
 				}
 
 				return null;
 			}
 			catch (Exception e) when (e is  ArgumentException or ValueExpectedException)
 			{
-				ConsoleEx.WriteLog(e.Message, LogId, LogType.Error);
+				StringBuilder sb = new StringBuilder(e.Message);
+				if (cfgFile.HasValue)
+				{
+					sb.Append($" ConfigFile: {cfgFile.Value.FilePath} Line: {cfgFile.Value.Line}");
+				}
+				ConsoleEx.WriteLog(sb.ToString(), LogId, LogType.Error);
 				return null;
 			}
 
